@@ -3,9 +3,7 @@ import * as React from "react";
 import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
-import { NextPageContext } from "next";
-
-interface IAuthProps {}
+import type { NextPageContext } from "next";
 
 export const getServerSideProps = async (context: NextPageContext) => {
   const user = await getSession(context);
@@ -14,7 +12,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
     return {
       redirect: {
         permanent: false,
-        destination: "/profile",
+        destination: "/home",
       },
       props: {},
     };
@@ -25,7 +23,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
   };
 };
 
-const Auth: React.FunctionComponent<IAuthProps> = (props) => {
+const Auth: React.FunctionComponent = () => {
   const { data: user } = useSession();
   React.useEffect(() => {
     console.log(user);

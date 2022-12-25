@@ -107,6 +107,7 @@ const MessageFeed: React.FunctionComponent = () => {
             className="w-full  p-1 outline-none"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && sendMessageHandler()}
           />
           <button onClick={sendMessageHandler}>
             <FontAwesomeIcon icon={faPaperPlane} className="text-blue-600" />
