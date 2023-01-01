@@ -1,8 +1,8 @@
 import * as React from "react";
 
-import WorkSpace from "../components/Workspace";
-import WorkspaceSideNav from "../components/WorkspaceSideNav";
-import WorkspaceProvider from "../context/workspace-context";
+import WorkSpace from "../components/Workspaces/Workspace/Workspace";
+import WorkspaceSideNav from "../components/Workspaces/Workspace/WorkspaceSideNav";
+import WorkspaceProvider from "../context/server-context";
 import ChannelProvider from "../context/channel-context";
 
 // interface IWorkspacePageProps {}

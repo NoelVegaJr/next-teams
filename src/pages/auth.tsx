@@ -17,7 +17,6 @@ export const getServerSideProps = async (context: NextPageContext) => {
       props: {},
     };
   }
-  console.log(user);
   return {
     props: { user },
   };

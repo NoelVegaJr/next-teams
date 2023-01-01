@@ -1,0 +1,14 @@
+.chatfeed::-webkit-scrollbar {
+  width: 1em;
+}
+
+.chatfeed::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+}
+
+.chatfeed::-webkit-scrollbar-thumb {
+  background-color: #1e293b;
+  border-radius: 10px;
+  outline: 1px solid #1e293b;
+}

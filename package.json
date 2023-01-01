@@ -7,7 +7,8 @@
     "dev": "next dev",
     "postinstall": "prisma generate",
     "lint": "next lint",
-    "start": "next start"
+    "start": "next start",
+    "smee": "smee -u https://smee.io/L7LpuHnvQS8LbT0 -P /api/events/presence"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.238.0",
@@ -35,7 +36,8 @@
     "react-beautiful-dnd": "^13.1.1",
     "react-dom": "18.2.0",
     "roughjs": "^4.5.2",
-    "superjson": "1.9.1",
+    "smee-client": "^1.2.3",
+    "superjson": "^1.9.1",
     "zod": "^3.18.0"
   },
   "devDependencies": {

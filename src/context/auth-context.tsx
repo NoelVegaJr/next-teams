@@ -1,6 +1,7 @@
 import { Session } from "next-auth";
 import { useSession } from "next-auth/react";
-import { createContext, useEffect } from "react";
+import { createContext, useEffect, useState } from "react";
+import { trpc } from "../utils/trpc";
 
 interface IUser {
   name: string;
@@ -9,12 +10,28 @@ interface IUser {
   id: string;
 }
 
-export const UserContext = createContext<Session | null>(null);
+export const UserContext = createContext<any>(null);
 
 const UserProvider = ({ children }: { children: JSX.Element }) => {
   const { data: user } = useSession();
-
-  return <UserContext.Provider value={user}>{children}</UserContext.Provider>;
+  const profileQuery = trpc.user.profile.useQuery(
+    {
+      userId: user?.user?.id ?? "",
+    },
+    {
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+      retry: false,
+      staleTime: 1000 * 60 * 60 * 24,
+    }
+  );
+  return (
+    <UserContext.Provider
+      value={{ profile: profileQuery.data, refetch: profileQuery.refetch }}
+    >
+      {children}
+    </UserContext.Provider>
+  );
 };
 
 export default UserProvider;

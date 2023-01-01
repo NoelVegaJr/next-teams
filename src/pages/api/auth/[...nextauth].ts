@@ -14,7 +14,7 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         session.user.id = user.id;
       }
-      return session;
+      return { ...session, user: { ...session.user, username: user.username } };
     },
   },
   // Configure one or more authentication providers
