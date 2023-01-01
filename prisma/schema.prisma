@@ -59,9 +59,15 @@ model User {
   friends Friendship[]
   profile Profile? 
   conversations ConversationParticipant[]
-  status String?
+  status Status @default(online)
 }
 
+enum Status {
+  online
+  offline
+  away
+  sleeping
+}
 
 model Profile {
   id            String    @id @default(cuid())

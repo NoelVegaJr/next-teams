@@ -1,8 +1,9 @@
-import * as React from "react";
+import type { Status } from "@prisma/client";
+import type { Size } from "@/types/types";
 
 interface IStatusBubbleProps {
-  status: string | null;
-  size: "xs" | "sm" | "md" | "lg" | "xl";
+  status: Status;
+  size: Size;
 }
 
 const StatusBubble: React.FunctionComponent<IStatusBubbleProps> = ({

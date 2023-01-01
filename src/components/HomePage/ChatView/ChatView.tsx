@@ -106,11 +106,13 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
       },
     });
   };
-
+  if (!conversationQuery.data) {
+    return <div />;
+  }
   return (
     <div className="flex h-screen flex-col bg-slate-600 ">
       <ChatToolbar
-        participants={conversationQuery.data?.participants ?? []}
+        participants={conversationQuery.data.participants}
         setConvo={setConvo}
         setView={setView}
       />

@@ -1,21 +1,13 @@
 import { faUserFriends, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import * as React from "react";
 import { useContext, useState } from "react";
 import { UserContext } from "@/context/auth-context";
 import AddFriendsToConversationDD from "./AddFriendsToConversationDD";
 import StatusBubble from "@/components/UI/StatusBubble";
-import { TStatus } from "@/types/status";
-
-interface IUser {
-  id: string;
-  username: string | null;
-  image: string | null;
-  status: TStatus;
-}
+import type { IUser } from "@/types/types";
 
 interface IChatToolbarProps {
-  participants: Array<{ user: IUser }>;
+  participants: { user: IUser }[];
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
 }

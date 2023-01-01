@@ -1,8 +1,6 @@
 import { faMessage } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
-import { useContext } from "react";
-import { UserContext } from "@/context/auth-context";
 import { trpc } from "@/utils/trpc";
 
 interface IDirectMessageProps {
