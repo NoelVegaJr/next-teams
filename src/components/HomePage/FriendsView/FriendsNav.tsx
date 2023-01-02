@@ -5,14 +5,14 @@ import { UserContext } from "@/context/auth-context";
 interface IFriendsNavProps {
   active: string;
   setActive: (tab: string) => void;
+  pending: number;
 }
 
 const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
   active,
   setActive,
+  pending,
 }) => {
-  const userCtx = useContext(UserContext);
-
   return (
     <nav className="flex  border-b border-b-slate-700 p-3 ">
       <p className="border-r border-r-slate-500 px-4 font-bold text-slate-100">
@@ -42,11 +42,9 @@ const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
           }`}
         >
           Pending{" "}
-          {(userCtx?.profile?.RecievingFriendRequests.length !== 0 ||
-            userCtx?.profile?.SentFriendRequests.length !== 0) && (
+          {pending !== 0 && (
             <span className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600  text-white">
-              {(userCtx?.profile?.RecievingFriendRequests?.length ?? 0) +
-                (userCtx?.profile?.SentFriendRequests?.length ?? 0)}
+              {pending}
             </span>
           )}
         </li>

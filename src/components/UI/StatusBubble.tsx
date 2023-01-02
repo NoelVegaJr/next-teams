@@ -4,11 +4,13 @@ import type { Size } from "@/types/types";
 interface IStatusBubbleProps {
   status: Status;
   size: Size;
+  position?: "absolute" | "static";
 }
 
 const StatusBubble: React.FunctionComponent<IStatusBubbleProps> = ({
   status,
   size,
+  position = "absolute",
 }) => {
   let fillingStyle;
 
@@ -34,7 +36,7 @@ const StatusBubble: React.FunctionComponent<IStatusBubbleProps> = ({
 
   switch (size) {
     case "xs":
-      bubbleSize = "h-3.5 w-3.5 ";
+      bubbleSize = "h-3 w-3 ";
       break;
     case "sm":
       bubbleSize = "h-3.5 w-3.5 ";
@@ -54,7 +56,7 @@ const StatusBubble: React.FunctionComponent<IStatusBubbleProps> = ({
 
   return (
     <div
-      className={`${bubbleSize} absolute bottom-1 right-0 rounded-full border border-slate-400  ${fillingStyle}`}
+      className={`${bubbleSize} ${position} bottom-1 right-0 rounded-full border border-slate-400  ${fillingStyle}`}
     />
   );
 };

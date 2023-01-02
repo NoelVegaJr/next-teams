@@ -1,3 +1,4 @@
+import type { IMessage } from "@/types/types";
 import {
   faSmile,
   faReply,
@@ -5,20 +6,6 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
-
-interface IUser {
-  id: string;
-  username: string | null;
-  image: string | null;
-}
-
-interface IMessage {
-  conversationId: string;
-  id: string;
-  date: Date;
-  text: string;
-  participant: { id: string; user: IUser };
-}
 
 interface IFollowMessageProps {
   message: IMessage;

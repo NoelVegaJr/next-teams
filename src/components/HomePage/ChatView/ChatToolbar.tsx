@@ -1,23 +1,25 @@
 import { faUserFriends, faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useContext, useState } from "react";
-import { UserContext } from "@/context/auth-context";
+import { useState } from "react";
 import AddFriendsToConversationDD from "./AddFriendsToConversationDD";
 import StatusBubble from "@/components/UI/StatusBubble";
-import type { IUser } from "@/types/types";
+import type { Friend, IConversationParticipant } from "@/types/types";
 
 interface IChatToolbarProps {
-  participants: { user: IUser }[];
+  participants: IConversationParticipant[];
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
+  myProfileId: string;
+  friends: Friend[];
 }
 
 const ChatToolbar: React.FunctionComponent<IChatToolbarProps> = ({
   participants,
   setView,
   setConvo,
+  myProfileId,
+  friends,
 }) => {
-  const userCtx = useContext(UserContext);
   const [addingUserDropdown, setAddingUserDropdown] = useState(false);
 
   return (
@@ -34,12 +36,16 @@ const ChatToolbar: React.FunctionComponent<IChatToolbarProps> = ({
         </div>
         <div className="flex gap-2 text-xl font-semibold text-slate-100">
           {participants.map((p) => {
-            if (p?.user?.id !== userCtx.profile.user.id) {
+            if (p.profile.id !== myProfileId) {
               return (
-                <li key={p.user.id} className="flex items-center gap-2">
-                  {p?.user?.username}
-                  {(participants.length ?? 0) === 2 && (
-                    <StatusBubble size="md" status={p.user.status} />
+                <li key={p.profile.id} className="flex items-center gap-2">
+                  {p.profile.username}
+                  {participants.length === 2 && (
+                    <StatusBubble
+                      size="xs"
+                      status={p.profile.status}
+                      position="static"
+                    />
                   )}
                 </li>
               );
@@ -53,8 +59,9 @@ const ChatToolbar: React.FunctionComponent<IChatToolbarProps> = ({
         </button>
         {addingUserDropdown && (
           <AddFriendsToConversationDD
+            friends={friends}
             close={() => setAddingUserDropdown(false)}
-            currentParticipantUserIds={participants.map((p) => p.user.id)}
+            currentParticipantUserIds={participants.map((p) => p.profile.id)}
             setConvo={setConvo}
             setView={setView}
           />

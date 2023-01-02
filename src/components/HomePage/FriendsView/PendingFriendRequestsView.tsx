@@ -1,56 +1,72 @@
 import { faCheck, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import Image from "next/image";
-import { useContext } from "react";
-import { UserContext } from "@/context/auth-context";
-import { trpc } from "@/utils/trpc";
 
-const PendingFriendRequestsView = () => {
-  const userCtx = useContext(UserContext);
+import { trpc } from "@/utils/trpc";
+import type { Friend } from "@/types/types";
+import Avatar from "@/components/UI/Avatar";
+
+const PendingFriendRequestsView = ({
+  friends,
+  myProfileId,
+}: {
+  friends: Friend[];
+  myProfileId: string;
+}) => {
   const utils = trpc.useContext();
 
   const cancelFriendRequestMutation = trpc.user.deleteFriendRequest.useMutation(
     {
       onSuccess: () => {
-        utils.user.profile.invalidate();
+        utils.user.getFriends.invalidate();
       },
     }
   );
+
   const acceptFriendRequestMutation = trpc.user.acceptFriendRequest.useMutation(
     {
       onSuccess: () => {
-        utils.user.profile.invalidate();
+        utils.user.getFriends.invalidate();
       },
     }
   );
 
-  const cancelFriendRequestHandler = (id: string) => {
-    cancelFriendRequestMutation.mutate({ id });
+  const cancelFriendRequestHandler = (
+    friendProfileId: string,
+    profileId: string
+  ) => {
+    cancelFriendRequestMutation.mutate({ friendProfileId, profileId });
   };
 
-  const acceptFriendRequestHandler = (id: string) => {
-    acceptFriendRequestMutation.mutate({ id });
+  const acceptFriendRequestHandler = (
+    friendProfileId: string,
+    profileId: string
+  ) => {
+    acceptFriendRequestMutation.mutate({ friendProfileId, profileId });
   };
 
   return (
     <ul className="mx-20 my-8">
-      {userCtx?.profile?.RecievingFriendRequests.map((fr: any) => {
-        if (fr.status === "pending") {
-          const { username, image } = fr.sender.user;
+      {friends
+        .filter((friend) => friend.status === "pending")
+        .map((friend) => {
+          const {
+            username,
+            avatar,
+            id: friendProfileId,
+            status,
+          } = friend.friendProfile;
           return (
             <li
-              key={fr.id}
+              key={friendProfileId}
               className="flex cursor-pointer items-center justify-between gap-4 rounded-lg p-4 transition-all duration-200 hover:bg-slate-500"
             >
               <div className="flex items-center gap-4">
-                <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                  <Image
-                    src={image ?? "/defaultserver.png"}
-                    alt="user avatar"
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
+                <Avatar
+                  username={username}
+                  image={avatar}
+                  size="sm"
+                  status={status}
+                />
                 <div>
                   <p className="text-lg font-bold text-slate-100">{username}</p>
                   <p className="font-semibold text-slate-400">
@@ -60,7 +76,9 @@ const PendingFriendRequestsView = () => {
               </div>
               <div className="flex gap-4 text-xl text-slate-400">
                 <button
-                  onClick={() => acceptFriendRequestHandler(fr.id)}
+                  onClick={() =>
+                    acceptFriendRequestHandler(friendProfileId, myProfileId)
+                  }
                   className="group flex h-10 w-10 items-center justify-center rounded-full bg-slate-700"
                 >
                   <FontAwesomeIcon
@@ -68,7 +86,12 @@ const PendingFriendRequestsView = () => {
                     className="group-hover:text-green-600"
                   />
                 </button>
-                <button className="group flex h-10 w-10 items-center justify-center rounded-full bg-slate-700">
+                <button
+                  onClick={() =>
+                    cancelFriendRequestHandler(friendProfileId, myProfileId)
+                  }
+                  className="group flex h-10 w-10 items-center justify-center rounded-full bg-slate-700"
+                >
                   <FontAwesomeIcon
                     icon={faX}
                     className="group-hover:text-red-600"
@@ -77,25 +100,28 @@ const PendingFriendRequestsView = () => {
               </div>
             </li>
           );
-        }
-      })}
-      {userCtx?.profile?.SentFriendRequests.map((fr: any) => {
-        if (fr.status === "pending") {
-          const { id, username, image } = fr.recipient.user;
+        })}
+      {friends
+        .filter((friend) => friend.status === "recieved")
+        .map((friend) => {
+          const {
+            username,
+            avatar,
+            id: friendProfileId,
+            status,
+          } = friend.friendProfile;
           return (
             <li
-              key={fr.id}
+              key={friendProfileId}
               className="flex cursor-pointer items-center justify-between gap-4 rounded-lg p-4 transition-all duration-200 hover:bg-slate-500"
             >
               <div className="flex gap-4">
-                <div className="relative h-12 w-12 overflow-hidden rounded-full">
-                  <Image
-                    src={image ?? "/defaultserver.png"}
-                    alt="user avatar"
-                    fill
-                    style={{ objectFit: "cover" }}
-                  />
-                </div>
+                <Avatar
+                  username={username}
+                  image={avatar}
+                  size="sm"
+                  status={status}
+                />
                 <div>
                   <p className="text-lg font-bold text-slate-100">{username}</p>
                   <p className="font-semibold text-slate-400">
@@ -104,7 +130,9 @@ const PendingFriendRequestsView = () => {
                 </div>
               </div>
               <button
-                onClick={() => cancelFriendRequestHandler(fr.id)}
+                onClick={() =>
+                  cancelFriendRequestHandler(friendProfileId, myProfileId)
+                }
                 className="group flex h-10 w-10 items-center justify-center rounded-full bg-slate-700 text-slate-400"
               >
                 <FontAwesomeIcon
@@ -114,8 +142,7 @@ const PendingFriendRequestsView = () => {
               </button>
             </li>
           );
-        }
-      })}
+        })}
     </ul>
   );
 };

@@ -27,12 +27,12 @@ model Account {
   type              String
   provider          String
   providerAccountId String
-  refresh_token     String?  @db.Text
-  access_token      String?  @db.Text
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
   expires_at        Int?
   token_type        String?
   scope             String?
-  id_token          String?  @db.Text
+  id_token          String? @db.Text
   session_state     String?
   user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -50,16 +50,12 @@ model Session {
 model User {
   id            String    @id @default(cuid())
   name          String?
-  username      String? @unique
   email         String?   @unique
   emailVerified DateTime?
   image         String?
   accounts      Account[]
   sessions      Session[]
-  friends Friendship[]
-  profile Profile? 
-  conversations ConversationParticipant[]
-  status Status @default(online)
+  profile       Profile?
 }
 
 enum Status {
@@ -70,15 +66,19 @@ enum Status {
 }
 
 model Profile {
-  id            String    @id @default(cuid())
-  userId String @unique
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            String                    @id @default(cuid())
+  userId        String                    @unique
+  name          String
+  username      String                    @unique
+  avatar        String
+  banner        String
+  status        Status                    @default(online)
+  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  friendShips   Friendship[]              @relation("user")
+  conversations ConversationParticipant[]
   servers       ServerMember[]
   workspaces    WorkspaceMember[]
   channels      WorkspaceChannelMember[]
-  friends Friendship[]
-  SentFriendRequests FriendRequest[] @relation("FR_Sender")
-  RecievingFriendRequests FriendRequest[] @relation("FR_Recipient")
 }
 
 model VerificationToken {
@@ -89,116 +89,96 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-
 model Friendship {
-   id            String    @id @default(cuid())
-   user1Id          String
-   user2Id         String
-   user1 Profile @relation(fields: [user1Id], references: [userId], onDelete: Cascade)
-   friend User @relation(fields: [user2Id], references: [id], onDelete: Cascade)
+  id            String           @id @default(cuid())
+  profileId     String
+  friendId      String
+  friendProfile Profile          @relation("user", fields: [profileId], references: [id], onDelete: Cascade)
+  status        FriendShipStatus
 }
 
-model FriendRequest {
-   id            String    @id @default(cuid())
-   senderId String
-   recipientId String
-   status String
-   sender Profile @relation("FR_Sender",fields: [senderId], references: [userId], onDelete: Cascade)
-   recipient Profile @relation("FR_Recipient", fields: [recipientId], references: [userId], onDelete: Cascade)
+enum FriendShipStatus {
+  recieved
+  pending
+  blocked
+  friends
 }
 
 model Server {
-  id            String    @id @default(cuid())
-  name          String
-  createdAt DateTime  @default(now())
-  image         String
-  members ServerMember[]
+  id        String         @id @default(cuid())
+  name      String
+  createdAt DateTime       @default(now())
+  image     String
+  members   ServerMember[]
   workspace Workspace[]
 }
 
 model ServerMember {
-    id            String    @id @default(cuid())
-    userId String
-    serverId String
-    server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-    user Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
-    
+  id       String  @id @default(cuid())
+  userId   String
+  serverId String
+  server   Server  @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  user     Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Workspace {
-  id            String    @id @default(cuid())
-  name          String
-  createdAt DateTime  @default(now())
-  image         String
-  members WorkspaceMember[]
-  serverId String
-  server Server @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  channels WorkspaceChannel[]
+  id        String             @id @default(cuid())
+  name      String
+  createdAt DateTime           @default(now())
+  image     String
+  members   WorkspaceMember[]
+  serverId  String
+  server    Server             @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  channels  WorkspaceChannel[]
 }
 
 model WorkspaceMember {
-    id            String    @id @default(cuid())
-    userId String
-    workspaceId String
-    workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-    user Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  id          String    @id @default(cuid())
+  userId      String
+  workspaceId String
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model WorkspaceChannel {
-    id            String    @id @default(cuid())
-    workspaceId String
-    name String
-    createdAt DateTime  @default(now())
-    members WorkspaceChannelMember[]
-    workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id          String                   @id @default(cuid())
+  workspaceId String
+  name        String
+  createdAt   DateTime                 @default(now())
+  members     WorkspaceChannelMember[]
+  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model WorkspaceChannelMember {
-    id          String    @id @default(cuid())
-    channelId String
-    joinAt DateTime  @default(now())
-    userId String
-    user Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
-    channel WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+  id        String           @id @default(cuid())
+  channelId String
+  joinAt    DateTime         @default(now())
+  userId    String
+  user      Profile          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  channel   WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }
 
 model Conversation {
-  id          String    @id @default(cuid())
+  id           String                    @id @default(cuid())
   participants ConversationParticipant[]
-  // messageGroups MessageGroup[]
-  messages Message[]
+  messages     Message[]
 }
 
 model ConversationParticipant {
-  id          String    @id @default(cuid())
-  userId String
-  user User @relation(fields: [userId], references: [id])
+  id             String       @id @default(cuid())
+  profileId      String
+  profile        Profile      @relation(fields: [profileId], references: [id])
   conversationId String
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  // messageGroups MessageGroup[]
-  messages Message[]
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  messages       Message[]
 }
 
-
-// model MessageGroup {
-//   id          String    @id @default(cuid())
-//   date DateTime @default(now())
-//   conversationParticipantId String
-//   sender ConversationParticipant @relation(fields: [conversationParticipantId], references: [id], onDelete: Cascade)
-//   messages Message[]
-//   conversationId String
-//   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-// }
-
-
 model Message {
-  id          String    @id @default(cuid())
-  date DateTime @default(now())
-  text String @db.Text
+  id             String                  @id @default(cuid())
+  date           DateTime                @default(now())
+  text           String                  @db.Text
   conversationId String
-  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  participantId String
-  participant ConversationParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
-  // messageGroupId String
-  // messageGroup MessageGroup @relation(fields: [messageGroupId], references: [id], onDelete: Cascade)
+  conversation   Conversation            @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  participantId  String
+  participant    ConversationParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
 }

@@ -1,27 +1,35 @@
 import * as React from "react";
-import { useContext, useState } from "react";
-import { UserContext } from "@/context/auth-context";
+import { useState } from "react";
 import { trpc } from "@/utils/trpc";
+import { profile } from "console";
 
-const AddFriendView: React.FunctionComponent = () => {
+interface IAddFriendViewProps {
+  profileId: string;
+}
+
+const AddFriendView: React.FunctionComponent<IAddFriendViewProps> = ({
+  profileId,
+}) => {
+  const utils = trpc.useContext();
   const [username, setUsername] = useState("");
-  const userCtx = useContext(UserContext);
 
   const [friendRequestInputActive, setFriendRequestInputActive] =
     useState(false);
-  const friendRequestMutation = trpc.user.sendFriendRequest.useMutation();
+  const friendRequestMutation = trpc.user.sendFriendRequest.useMutation({
+    onSuccess: () => {
+      utils.user.getFriends.invalidate();
+    },
+  });
 
   const sendFriendRequestHandler = async () => {
     const cleanUsername = username.trim();
-    if (!userCtx?.profile?.user?.id || !cleanUsername) return;
-    console.log("sending fr");
+    if (!cleanUsername) return;
 
     await friendRequestMutation.mutateAsync({
-      senderId: userCtx?.profile?.user.id,
+      senderProfileId: profileId,
       username: cleanUsername,
     });
     setUsername("");
-    userCtx.refetch();
   };
   return (
     <div className="p-6">

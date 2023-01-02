@@ -4,13 +4,13 @@ import * as React from "react";
 import { trpc } from "@/utils/trpc";
 
 interface IDirectMessageProps {
-  userIds: string[];
+  profileIds: string[];
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
 }
 
 const DirectMessageButton: React.FunctionComponent<IDirectMessageProps> = ({
-  userIds,
+  profileIds,
   setView,
   setConvo,
 }) => {
@@ -23,10 +23,13 @@ const DirectMessageButton: React.FunctionComponent<IDirectMessageProps> = ({
   return (
     <button
       onClick={async () => {
+        console.log(profileIds);
         const conversation = await mutation.mutateAsync({
-          userIds: [...userIds],
+          profileIds: profileIds,
         });
-        if (!conversation.id) return;
+
+        if (!conversation) return;
+        console.log("CONVERSATION EXISTS: ", conversation.id);
         setConvo(conversation.id);
         setView("chat");
       }}

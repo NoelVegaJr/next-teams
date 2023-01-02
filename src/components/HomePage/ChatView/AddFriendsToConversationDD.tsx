@@ -1,23 +1,22 @@
 import { faCheck } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
-import { useContext, useState } from "react";
-import { UserContext } from "@/context/auth-context";
+import { useState } from "react";
 import Avatar from "@/components/UI/Avatar";
 import DirectMessageButton from "../FriendsView/DirectMessageButton";
+import type { Friend } from "@/types/types";
 
 interface IAddFriendsToConversationDDProps {
   currentParticipantUserIds: string[];
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
   close: () => void;
+  friends: Friend[];
 }
 
 const AddFriendsToConversationDD: React.FunctionComponent<
   IAddFriendsToConversationDDProps
-> = ({ currentParticipantUserIds, setView, setConvo, close }) => {
-  const userCtx = useContext(UserContext);
-  const { friends } = userCtx.profile;
+> = ({ currentParticipantUserIds, setView, setConvo, close, friends }) => {
   const [conversationInvites, setConversationInvites] = useState<string[]>([
     ...currentParticipantUserIds,
   ]);
@@ -54,28 +53,31 @@ const AddFriendsToConversationDD: React.FunctionComponent<
         </div>
         <div>
           <ul className="cursor-pointer ">
-            {friends.map((f: any) => {
-              const { id, username, image, status } = f.friend;
+            {friends.map((f) => {
+              const { id, username, avatar, status } = f.friendProfile;
               if (!currentParticipantUserIds.map((pid) => pid).includes(id)) {
                 return (
                   <li
                     key={id}
                     className="flex items-center justify-between  rounded p-2 hover:bg-slate-700/30"
                     onClick={() => {
-                      if (conversationInvites.length === 0) {
-                        setConversationInvites((prev) => [id]);
-                        return;
-                      }
+                      // // first invite
+                      // if (conversationInvites.length === 0) {
+                      //   setConversationInvites(() => [id]);
+                      //   return;
+                      // }
 
                       const exists = conversationInvites.includes(id);
 
                       if (exists) {
+                        // remove friend from invite list
                         setConversationInvites((prev) => {
                           return [
                             ...prev.filter((prev_userId) => prev_userId !== id),
                           ];
                         });
                       } else {
+                        // add friend to invite list
                         setConversationInvites((prev) => {
                           return [...prev, id];
                         });
@@ -87,7 +89,7 @@ const AddFriendsToConversationDD: React.FunctionComponent<
                         size="xs"
                         status={status}
                         username={username}
-                        image={image}
+                        image={avatar}
                       />
                       <p className="font-normal text-slate-300">{username}</p>
                     </div>
@@ -112,7 +114,7 @@ const AddFriendsToConversationDD: React.FunctionComponent<
           </ul>
           <div className="p-4">
             <DirectMessageButton
-              userIds={conversationInvites}
+              profileIds={conversationInvites}
               setView={setView}
               setConvo={setConvo}
             />

@@ -2,6 +2,7 @@ import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import pusher from "../../../utils/pusher";
 import { prisma } from "../../db/client";
+import { profile } from "console";
 
 export const chatRouter = router({
   push: publicProcedure
@@ -10,11 +11,6 @@ export const chatRouter = router({
         conversationId: z.string(),
         participantId: z.string(),
         text: z.string(),
-        user: z.object({
-          id: z.string(),
-          username: z.string(),
-          image: z.string(),
-        }),
       })
     )
     .mutation(async ({ input }) => {
@@ -35,11 +31,11 @@ export const chatRouter = router({
             participant: {
               select: {
                 id: true,
-                user: {
+                profile: {
                   select: {
                     id: true,
                     username: true,
-                    image: true,
+                    avatar: true,
                     status: true,
                   },
                 },
@@ -55,77 +51,121 @@ export const chatRouter = router({
       }
     }),
   findConversation: publicProcedure
-    .input(z.object({ userIds: z.string().array() }))
+    .input(z.object({ profileIds: z.string().array() }))
     .mutation(async ({ input }) => {
-      const { userIds } = input;
-      console.log("finding conversation", "for", userIds);
-      const conversations = await prisma.conversation.findMany({
-        where: {
-          participants: {
-            every: {
-              userId: {
-                in: userIds,
+      const { profileIds } = input;
+      console.log(profileIds);
+      try {
+        const existingConversations = await prisma.conversation.findMany({
+          where: {
+            participants: {
+              every: {
+                profileId: {
+                  in: profileIds,
+                },
               },
             },
           },
-        },
-        select: {
-          id: true,
-          participants: { select: { userId: true } },
-        },
-      });
-
-      let existingConversationId;
-      conversations.map((c) => {
-        const ids = c.participants.map((p) => p.userId);
-        let count = 0;
-        ids.forEach((id) => {
-          if (userIds.includes(id)) {
-            count++;
-          }
-
-          if (count === userIds.length) {
-            existingConversationId = c;
-          }
+          select: {
+            id: true,
+            participants: {
+              include: {
+                profile: true,
+              },
+            },
+          },
         });
-      });
 
-      if (!existingConversationId) {
+        const foundConversation = existingConversations
+          .filter((c) => {
+            return c.participants.length === profileIds.length;
+          })
+          .filter((c) => {
+            return c.participants.every((p) =>
+              profileIds.includes(p.profileId)
+            );
+          });
+
+        // const foundConversation = existingConversations.filter((c) => {
+        //   return c.participants.every((p) => profileIds.includes(p.profile.id));
+        // });
+
+        console.log("FOUND CONVERSATION: ", foundConversation);
+
+        if (foundConversation.length) {
+          return foundConversation[0];
+        }
+
         const newConversation = await prisma.conversation.create({
           data: {
             participants: {
               createMany: {
-                data: userIds.map((id) => {
-                  return { userId: id };
+                data: profileIds.map((profileId) => {
+                  return { profileId };
                 }),
+              },
+            },
+          },
+          select: {
+            id: true,
+            participants: {
+              include: {
+                profile: true,
               },
             },
           },
         });
 
         return newConversation;
-      }
 
-      return existingConversationId;
+        // let foundConversation;
+        // existingConversations.forEach(conversation => {
+        //   let matchCount = 0
+        //   conversation.participants.forEach((participant, index) => {
+        //     if(profileIds.includes(participant.profile.id)){
+        //       matchCount++
+        //     }
+        //     if(matchCount === profileIds.length && index - 1 === conversation.participants.length ){
+        //       foundConversation = conversation
+
+        //     }
+        //   })
+        // })
+      } catch (error) {}
     }),
   listConversations: publicProcedure
-    .input(z.object({ userId: z.string() }))
+    .input(z.object({ profileId: z.string() }))
     .query(async ({ input }) => {
-      const { userId } = input;
-      if (!userId) return {};
+      const { profileId } = input;
       try {
         const conversations = await prisma.conversation.findMany({
           where: {
             participants: {
               some: {
-                userId,
+                profileId: profileId,
               },
             },
           },
-          include: {
+          select: {
+            id: true,
             participants: {
-              include: {
-                user: true,
+              select: {
+                id: true,
+                profile: true,
+              },
+            },
+            messages: {
+              select: {
+                conversationId: true,
+                id: true,
+                date: true,
+                text: true,
+                participant: {
+                  select: {
+                    id: true,
+                    profile: true,
+                  },
+                },
               },
             },
           },
@@ -155,31 +195,15 @@ export const chatRouter = router({
                 participant: {
                   select: {
                     id: true,
-                    user: {
-                      select: {
-                        id: true,
-                        username: true,
-                        image: true,
-                        status: true,
-                      },
-                    },
+                    profile: true,
                   },
                 },
               },
             },
             participants: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    username: true,
-                    image: true,
-                    status: true,
-                    name: true,
-                    emailVerified: true,
-                    email: true,
-                  },
-                },
+              select: {
+                id: true,
+                profile: true,
               },
             },
           },

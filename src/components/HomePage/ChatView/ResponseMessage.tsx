@@ -7,21 +7,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
 import Link from "next/link";
 import Avatar from "@/components/UI/Avatar";
-
-interface IUser {
-  id: string;
-  username: string | null;
-  image: string | null;
-  status: string | null;
-}
-
-interface IMessage {
-  conversationId: string;
-  id: string;
-  date: Date;
-  text: string;
-  participant: { id: string; user: IUser };
-}
+import type { IMessage } from "@/types/types";
 
 interface IResponseMessageProps {
   message: IMessage;
@@ -36,7 +22,7 @@ const ResponseMessage: React.FunctionComponent<IResponseMessageProps> = ({
   setHovered,
   index,
 }) => {
-  const { user } = message.participant;
+  const { profile: msgSenderProfile } = message.participant;
   return (
     <div
       key={message.id}
@@ -52,16 +38,16 @@ const ResponseMessage: React.FunctionComponent<IResponseMessageProps> = ({
     >
       <div className="flex w-20 justify-end ">
         <Avatar
-          username={user.username ?? ""}
-          image={user.image ?? ""}
+          username={msgSenderProfile.username}
+          image={msgSenderProfile.avatar}
           size="sm"
-          status={user.status}
+          status={msgSenderProfile.status}
         />
       </div>
       <div className="flex flex-col ">
         <div className="flex items-center gap-2">
           <p className="font-bold text-slate-200">
-            {message?.participant?.user?.username}
+            {message.participant.profile.username}
           </p>
           <p className="w-32  text-sm text-slate-400">
             {new Date(message.date).toLocaleString("en-US", {

@@ -2,29 +2,28 @@ import * as React from "react";
 import { trpc } from "@/utils/trpc";
 
 interface IFriendOptionsProps {
-  userId: string;
-  friendUserId: string;
+  myProfileId: string;
+  friendProfileId: string;
   close: () => void;
 }
 
 const FriendOptions: React.FunctionComponent<IFriendOptionsProps> = ({
-  userId,
-  friendUserId,
+  myProfileId,
+  friendProfileId,
   close,
-}: {
-  userId: string;
-  friendUserId: string;
-  close: () => void;
 }) => {
   const utils = trpc.useContext();
   const removeFriendMutation = trpc.user.unfriend.useMutation({
     onSuccess: () => {
-      utils.user.profile.invalidate();
+      utils.user.getFriends.invalidate();
     },
   });
 
   const unfriendHandler = () => {
-    removeFriendMutation.mutate({ userId, friendUserId });
+    removeFriendMutation.mutate({
+      friendProfileId: friendProfileId,
+      profileId: myProfileId,
+    });
   };
 
   return (

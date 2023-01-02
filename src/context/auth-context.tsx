@@ -3,18 +3,11 @@ import { useSession } from "next-auth/react";
 import { createContext, useEffect, useState } from "react";
 import { trpc } from "../utils/trpc";
 
-interface IUser {
-  name: string;
-  email: string;
-  image: string;
-  id: string;
-}
-
 export const UserContext = createContext<any>(null);
 
 const UserProvider = ({ children }: { children: JSX.Element }) => {
   const { data: user } = useSession();
-  const profileQuery = trpc.user.profile.useQuery(
+  const profileQuery = trpc.user.getProfile.useQuery(
     {
       userId: user?.user?.id ?? "",
     },

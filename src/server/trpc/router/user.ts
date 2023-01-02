@@ -1,9 +1,9 @@
-import { z } from "zod";
+import { string, z } from "zod";
 import { prisma } from "../../db/client";
 import { router, publicProcedure } from "../trpc";
 
 export const userRouter = router({
-  profile: publicProcedure
+  getProfile: publicProcedure
     .input(z.object({ userId: z.string() }))
     .query(async ({ input }) => {
       const { userId } = input;
@@ -11,153 +11,205 @@ export const userRouter = router({
         const profile = await prisma.profile.findUnique({
           where: { userId },
           include: {
-            user: true,
-            friends: {
-              include: {
-                friend: {
+            servers: true,
+          },
+        });
+
+        if (!profile) return;
+
+        const conversations = await prisma.conversation.findMany({
+          where: {
+            participants: {
+              some: {
+                profileId: profile.id,
+              },
+            },
+          },
+          select: {
+            id: true,
+            participants: {
+              select: {
+                id: true,
+                profile: true,
+              },
+            },
+            messages: {
+              select: {
+                id: true,
+                date: true,
+                text: true,
+                participant: {
                   select: {
                     id: true,
-                    name: true,
-                    username: true,
-                    image: true,
-                    status: true,
-                  },
-                },
-              },
-            },
-            RecievingFriendRequests: {
-              include: {
-                sender: {
-                  include: {
-                    user: true,
-                  },
-                },
-              },
-            },
-            SentFriendRequests: {
-              include: {
-                recipient: {
-                  include: {
-                    user: true,
-                  },
-                },
-              },
-            },
-            servers: {
-              include: {
-                server: {
-                  include: {
-                    _count: {
-                      select: {
-                        members: true,
-                      },
-                    },
-                    workspace: {
-                      include: {
-                        channels: true,
-                      },
-                    },
+                    profile: true,
                   },
                 },
               },
             },
           },
         });
-        return profile;
+
+        return { ...profile, conversations };
       } catch (err) {
         console.log(err);
       }
     }),
-  sendFriendRequest: publicProcedure
-    .input(z.object({ username: z.string(), senderId: z.string() }))
+
+  createProfile: publicProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        name: z.string(),
+        username: z.string(),
+        avatar: z.string(),
+        banner: z.string(),
+      })
+    )
     .mutation(async ({ input }) => {
-      const { username, senderId } = input;
+      try {
+        const profile = await prisma.profile.create({
+          data: input,
+        });
+
+        return { profile, success: true };
+      } catch (error) {
+        return { success: false };
+      }
+    }),
+
+  sendFriendRequest: publicProcedure
+    .input(z.object({ username: z.string(), senderProfileId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { username, senderProfileId } = input;
 
       try {
-        const recipient = await prisma.user.findUnique({
+        const recipient = await prisma.profile.findUnique({
           where: { username },
         });
 
-        if (!recipient?.id) {
-          return;
-        }
-        // new friend request
-        await prisma.friendRequest.create({
-          data: { senderId, recipientId: recipient.id, status: "pending" },
+        if (!recipient) return { error: "user not found" };
+
+        const friendRequest = await prisma.friendship.create({
+          data: {
+            profileId: senderProfileId,
+            friendId: recipient.id,
+            status: "pending",
+          },
+          include: {
+            friendProfile: true,
+          },
         });
+        // 2nd row for relationship purposes
+        await prisma.friendship.create({
+          data: {
+            profileId: recipient.id,
+            friendId: senderProfileId,
+            status: "recieved",
+          },
+        });
+
+        return friendRequest;
       } catch (err) {
-        console.log(err);
+        return { error: "application error :/" };
       }
     }),
+  getFriends: publicProcedure
+    .input(z.object({ profileId: z.string() }))
+    .query(async ({ input }) => {
+      const { profileId } = input;
+      try {
+        const friends = await prisma.friendship.findMany({
+          where: {
+            friendId: profileId,
+          },
+          select: {
+            friendProfile: true,
+            status: true,
+          },
+        });
+        return friends;
+      } catch (error) {}
+    }),
   deleteFriendRequest: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ profileId: z.string(), friendProfileId: z.string() }))
     .mutation(async ({ input }) => {
-      const { id } = input;
+      const { profileId, friendProfileId } = input;
 
       try {
-        await prisma.friendRequest.delete({
-          where: { id },
+        await prisma.friendship.deleteMany({
+          where: {
+            profileId,
+            friendId: friendProfileId,
+          },
+        });
+        await prisma.friendship.deleteMany({
+          where: {
+            profileId: friendProfileId,
+            friendId: profileId,
+          },
         });
       } catch (err) {
         console.log(err);
       }
     }),
   acceptFriendRequest: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ profileId: z.string(), friendProfileId: z.string() }))
     .mutation(async ({ input }) => {
-      const { id } = input;
+      const { profileId, friendProfileId } = input;
 
       try {
-        const friendRequest = await prisma.friendRequest.findUnique({
-          where: { id },
-        });
-
-        if (!friendRequest) return;
-        console.log("CREATING FRIENDSHIP");
-
-        await prisma.friendship.create({
+        await prisma.friendship.updateMany({
+          where: {
+            profileId,
+            friendId: friendProfileId,
+          },
           data: {
-            user1Id: friendRequest.senderId,
-            user2Id: friendRequest.recipientId,
+            status: "friends",
           },
         });
-        await prisma.friendship.create({
-          data: {
-            user2Id: friendRequest.senderId,
-            user1Id: friendRequest.recipientId,
+        await prisma.friendship.updateMany({
+          where: {
+            profileId: friendProfileId,
+            friendId: profileId,
           },
-        });
-        await prisma.friendRequest.delete({
-          where: { id },
+          data: {
+            status: "friends",
+          },
         });
       } catch (err) {
         console.log(err);
       }
     }),
   unfriend: publicProcedure
-    .input(z.object({ userId: z.string(), friendUserId: z.string() }))
+    .input(z.object({ profileId: z.string(), friendProfileId: z.string() }))
     .mutation(async ({ input }) => {
-      const { userId, friendUserId } = input;
+      const { profileId, friendProfileId } = input;
 
       try {
         await prisma.friendship.deleteMany({
-          where: { user1Id: userId, user2Id: friendUserId },
+          where: { profileId, friendId: friendProfileId },
         });
+
         await prisma.friendship.deleteMany({
-          where: { user1Id: friendUserId, user2Id: userId },
+          where: { profileId: friendProfileId, friendId: profileId },
         });
       } catch (err) {
         console.log(err);
       }
     }),
   updateStatus: publicProcedure
-    .input(z.object({ userId: z.string(), status: z.string() }))
+    .input(
+      z.object({
+        userId: z.string(),
+        status: z.enum(["online", "offline", "away", "sleeping"]),
+      })
+    )
     .mutation(async ({ input }) => {
       const { userId, status } = input;
 
       try {
-        await prisma.user.update({
-          where: { id: userId },
+        await prisma.profile.update({
+          where: { userId: userId },
           data: { status },
         });
       } catch (err) {

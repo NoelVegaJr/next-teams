@@ -6,6 +6,8 @@
       "@/utils/*": ["utils/*"],
       "@/context/*": ["context/*"],
       "@/styles/*": ["styles/*"],
+      "@/env/*": ["env/*"],
+      "@/server/*": ["server/*"],
       "@/types/*": ["types/*"]
     },
     "target": "es2017",

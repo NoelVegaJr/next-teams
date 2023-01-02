@@ -1,48 +1,35 @@
-import * as React from "react";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import client from "pusher-js";
 
 import { trpc } from "@/utils/trpc";
-import { UserContext } from "@/context/auth-context";
 
 import styles from "@/styles/chatfeed.module.css";
 import ResponseMessage from "./ResponseMessage";
 import FollowMessage from "./FollowMessage";
 import ChatToolbar from "./ChatToolbar";
-
-interface IUser {
-  id: string;
-  username: string | null;
-  image: string | null;
-  status: string | null;
-}
-
-interface IMessage {
-  conversationId: string;
-  id: string;
-  date: Date;
-  text: string;
-  participant: { id: string; user: IUser };
-}
+import type { Friend, IMessage } from "@/types/types";
 
 interface IChatViewProps {
-  convo?: string;
+  convo: string;
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
+  profileId: string;
+  friends: Friend[];
 }
 
 const ChatView: React.FunctionComponent<IChatViewProps> = ({
   convo,
   setView,
   setConvo,
+  profileId,
+  friends,
 }) => {
-  const userCtx = useContext(UserContext);
   const [messages, setMessages] = useState<IMessage[]>([]);
   const newMessageRef = useRef<HTMLInputElement>(null);
   const sendMessage = trpc.chat.push.useMutation();
   const conversationQuery = trpc.chat.getConversationById.useQuery(
     {
-      id: convo ?? "",
+      id: convo,
     },
     {
       refetchOnWindowFocus: false,
@@ -53,8 +40,8 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
 
   useEffect(() => {
     const messages = conversationQuery.data?.messages;
-    setMessages(messages ?? []);
-  }, [conversationQuery.data, userCtx.profile.user.id, convo]);
+    if (messages) setMessages(messages);
+  }, [conversationQuery.data]);
 
   const [hoveredMsg, setHoveredMsg] = useState<{
     id: string;
@@ -72,7 +59,7 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
         transport: "ajax",
         endpoint: "http://localhost:3000/api/pusher/auth",
         params: {
-          user_id: userCtx.profile.user.id,
+          user_id: profileId,
         },
       },
     });
@@ -85,12 +72,12 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
     return () => {
       pusherClient.unsubscribe("friend");
     };
-  }, [messages, userCtx.profile.user.id]);
+  }, [messages, profileId]);
 
   const sendMessageHandler = () => {
     if (!newMessageRef.current?.value || !convo) return;
     const participantId = conversationQuery.data?.participants.find(
-      (user) => user.userId === userCtx.profile.user.id
+      (participant) => participant.profile.id === profileId
     )?.id;
 
     if (!participantId) return;
@@ -99,11 +86,6 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
       conversationId: convo,
       participantId,
       text: newMessageRef.current.value,
-      user: {
-        id: userCtx.profile.user.id,
-        image: userCtx.profile.user.image,
-        username: userCtx.profile.user.username,
-      },
     });
   };
   if (!conversationQuery.data) {
@@ -112,9 +94,11 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
   return (
     <div className="flex h-screen flex-col bg-slate-600 ">
       <ChatToolbar
+        myProfileId={profileId}
         participants={conversationQuery.data.participants}
         setConvo={setConvo}
         setView={setView}
+        friends={friends}
       />
       <div
         className={`chatfeed grow items-end overflow-y-scroll ${styles.chatfeed}`}

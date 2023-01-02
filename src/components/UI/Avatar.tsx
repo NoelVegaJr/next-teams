@@ -1,11 +1,13 @@
 import * as React from "react";
 import Image from "next/image";
 import StatusBubble from "./StatusBubble";
-import type { TStatus } from "../../types/status";
+import type { Status } from "@prisma/client";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 interface IAvatarProps {
   image: string;
-  status: string | null;
+  status: Status;
   username: string;
   size: "xs" | "sm" | "md" | "lg" | "xl";
 }
@@ -40,16 +42,26 @@ const Avatar: React.FunctionComponent<IAvatarProps> = ({
 
   return (
     <div className="relative h-fit w-fit">
-      <div className={`relative ${avatarSize} overflow-hidden rounded-full `}>
-        <Image
-          src={image}
-          alt={`${username} avatar`}
-          style={{ objectFit: "cover" }}
-          fill
-          sizes="(max-width: 768px) 100vw,
+      <div
+        className={`relative ${avatarSize} overflow-hidden rounded-full ${
+          !image && "border-2"
+        }`}
+      >
+        {image !== "default" ? (
+          <Image
+            src={image}
+            alt={`${username} avatar`}
+            style={{ objectFit: "cover" }}
+            fill
+            sizes="(max-width: 768px) 100vw,
               (max-width: 1200px) 50vw,
               33vw"
-        />
+          />
+        ) : (
+          <div className="grid h-full w-full place-content-center text-3xl text-slate-300">
+            <FontAwesomeIcon icon={faUser} />
+          </div>
+        )}
       </div>
       <StatusBubble size={size} status={status} />
     </div>

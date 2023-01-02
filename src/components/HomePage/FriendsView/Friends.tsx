@@ -1,35 +1,38 @@
-import * as React from "react";
-import { UserContext } from "@/context/auth-context";
-import { useContext, useState } from "react";
+import { useState } from "react";
 import Friend from "./Friend";
 import SearchBar from "./SearchBar";
+import type { Friend as TFriend } from "@/types/types";
 
 interface IFriendsProps {
   setView: (view: string) => void;
   setConvo: (conversationId: string) => void;
   view: string;
+  friends: TFriend[];
+  myProfileId: string;
 }
 
 const Friends: React.FunctionComponent<IFriendsProps> = ({
   setView,
   setConvo,
   view,
+  friends,
+  myProfileId,
 }) => {
-  const userCtx = useContext(UserContext);
   const [username, setUsername] = useState("");
-  const { friends } = userCtx.profile;
   const searchBarOnChangeHandler = (value: string) => {
     setUsername(value);
   };
-
-  const filteredFriends = friends.filter((f: any) => {
-    const match = f.friend.username.includes(username.trim()) && f;
+  console.log(friends);
+  const filteredFriends = friends.filter((friend) => {
+    const match =
+      friend.friendProfile.username.includes(username.trim()) &&
+      friend.status === "friends";
     if (match) {
       if (view === "all") {
-        return f;
+        return friend;
       } else if (view === "online") {
-        if (f.friend.status === "online") {
-          return f;
+        if (friend.friendProfile.status === "online") {
+          return friend;
         }
       }
     }
@@ -43,17 +46,14 @@ const Friends: React.FunctionComponent<IFriendsProps> = ({
       </p>
 
       <ul className="">
-        {filteredFriends.map((friend: any) => {
-          const { id, username, image, status } = friend.friend;
+        {filteredFriends.map((friend) => {
           return (
             <Friend
-              key={id}
-              friendUserId={id}
-              image={image}
-              status={status}
-              username={username}
+              key={friend.friendProfile.id}
+              friend={friend}
               setConvo={setConvo}
               setView={setView}
+              myProfileId={myProfileId}
             />
           );
         })}

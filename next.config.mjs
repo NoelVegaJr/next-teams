@@ -14,7 +14,10 @@ const config = {
     defaultLocale: "en",
   },
   images: {
-    domains: ["lh3.googleusercontent.com"],
+    domains: [
+      "lh3.googleusercontent.com",
+      "codeforktestbucket.s3.amazonaws.com",
+    ],
   },
 };
 export default config;
