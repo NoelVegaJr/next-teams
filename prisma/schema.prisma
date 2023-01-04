@@ -105,20 +105,33 @@ enum FriendShipStatus {
 }
 
 model Server {
-  id        String         @id @default(cuid())
-  name      String
-  createdAt DateTime       @default(now())
-  image     String
-  members   ServerMember[]
-  workspace Workspace[]
+  id                   String                 @id @default(cuid())
+  name                 String
+  createdAt            DateTime               @default(now())
+  image                String
+  members              ServerMember[]
+  workspaces           Workspace[]
+  ServerInvitationLink ServerInvitationLink[]
 }
 
 model ServerMember {
-  id       String  @id @default(cuid())
-  userId   String
-  serverId String
-  server   Server  @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  user     Profile @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  id              String                 @id @default(cuid())
+  profileId       String
+  serverId        String
+  server          Server                 @relation(fields: [serverId], references: [id], onDelete: Cascade)
+  profile         Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  sentInvitations ServerInvitationLink[]
+
+  @@unique([profileId, serverId], name: "serverMemberIdentifier")
+}
+
+model ServerInvitationLink {
+  id             String       @id @default(cuid())
+  serverId       String
+  createdAt      DateTime     @default(now())
+  server         Server       @relation(fields: [serverId], references: [id])
+  serverMemberId String
+  profile        ServerMember @relation(fields: [serverMemberId], references: [id])
 }
 
 model Workspace {
@@ -134,10 +147,10 @@ model Workspace {
 
 model WorkspaceMember {
   id          String    @id @default(cuid())
-  userId      String
+  profileId   String
   workspaceId String
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user        Profile   @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
 }
 
 model WorkspaceChannel {
@@ -153,8 +166,8 @@ model WorkspaceChannelMember {
   id        String           @id @default(cuid())
   channelId String
   joinAt    DateTime         @default(now())
-  userId    String
-  user      Profile          @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  profileId String
+  profile   Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
   channel   WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
 }
 

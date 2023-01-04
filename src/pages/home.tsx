@@ -10,6 +10,7 @@ import type {
   Friend,
   IConversationWithMessages,
   IConversationWithParticipant,
+  ServerPreview,
 } from "@/types/types";
 import styles from "@/styles/scroll.module.css";
 import client from "pusher-js";
@@ -18,6 +19,7 @@ import { prisma } from "@/server/db/client";
 import type { Conversation, Friendship, Profile, Server } from "@prisma/client";
 import SideNav from "@/components/HomePage/SideNav";
 import { json } from "stream/consumers";
+import Stack from "@/components/UI/Stack";
 
 interface IInvitation {
   id: string;
@@ -64,6 +66,20 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
       props: {},
     };
   }
+
+  const servers = await prisma.server.findMany({
+    where: { members: { some: { profileId: profile.id } } },
+    select: {
+      id: true,
+      name: true,
+      image: true,
+      _count: {
+        select: {
+          members: true,
+        },
+      },
+    },
+  });
 
   let conversations = await prisma.conversation.findMany({
     where: {
@@ -112,6 +128,7 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
   return {
     props: {
       profile,
+      servers,
       conversations,
       friends,
     },
@@ -126,13 +143,12 @@ export default function HomePage({
 }: {
   profile: Profile;
   conversations: IConversationWithMessages[];
-  servers: Server[];
+  servers: ServerPreview[];
   friends: Friend[];
 }) {
   console.log(profile);
   const [view, setView] = useState("servers");
   const [convo, setConvo] = useState<string>("");
-  // const userCtx = useContext(UserContext);
 
   useEffect(() => {
     const pusherClient = new client("99e512a0e34c2dc7612d", {
@@ -170,16 +186,14 @@ export default function HomePage({
         className={`scroll mx-auto h-screen w-full overflow-y-auto ${styles.scroll}`}
       >
         {view === "servers" && (
-          <div className="flex flex-col gap-12 p-4">
-            <>
-              <ServerList
-                servers={servers}
-                userId={profile.userId}
-                email={profile.username}
-              />
-              <Invitations invitations={invitations} />
-            </>
-          </div>
+          <Stack gap={6} className="p-4">
+            <ServerList
+              initialServers={servers}
+              profile={profile}
+              username={profile.username}
+            />
+            <Invitations invitations={invitations} />
+          </Stack>
         )}
         {view === "friends" && (
           <FriendsView

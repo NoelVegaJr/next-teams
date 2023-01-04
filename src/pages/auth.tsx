@@ -4,6 +4,7 @@ import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faLock } from "@fortawesome/free-solid-svg-icons";
 import type { NextPageContext } from "next";
+import Link from "next/link";
 
 export const getServerSideProps = async (context: NextPageContext) => {
   const user = await getSession(context);
@@ -29,87 +30,81 @@ const Auth: React.FunctionComponent = () => {
   }, [user]);
   return (
     <div className="flex h-screen">
-      <section className="w-1/3 border px-20">
-        <div className="flex justify-between py-16">
-          <p className="text-3xl font-bold text-indigo-700">Team Flow</p>
-          <p className="font-semibold text-indigo-700 underline">Demo</p>
-        </div>
-        <div className="mb-8">
-          <p className="text-3xl font-bold text-indigo-900">
-            Hi, Welcome Back!
-          </p>
-          <p className="text-xs text-slate-400">
-            Start 14 day full-featured trial. No credit card required
-          </p>
-        </div>
-        <div className="flex flex-col gap-2 ">
-          <div className="flex flex-col gap-4">
-            <div>
-              <label htmlFor="email" className="font-semibold text-slate-500">
-                Email Address
-              </label>
-              <input
-                id="email"
-                type="text"
-                placeholder="Email"
-                className="w-full rounded border-2 px-1 py-1  outline-none"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="password"
-                className="font-semibold text-slate-500"
-              >
-                Password
-              </label>
-              <input
-                id="password"
-                type="text"
-                placeholder="Password"
-                className="w-full rounded border-2 px-1 py-1 outline-none"
-              />
-            </div>
-            <button className="flex w-full items-center justify-center gap-4 rounded-lg  bg-indigo-600 py-2 text-xl font-semibold text-white">
-              <FontAwesomeIcon icon={faLock} />
-              <p>Login</p>
+      <section className="flex w-1/2 items-center justify-center     px-20">
+        <div className="w-4/5 rounded bg-white p-4">
+          <div className="mb-8">
+            <p className="text-3xl font-bold text-blue-900">
+              Hi, Welcome Back!
+            </p>
+            <p className="text-xs text-slate-400">
+              Start 14 day full-featured trial. No credit card required
+            </p>
+          </div>
+          <div className="flex flex-col  ">
+            <button
+              onClick={() => signIn("google")}
+              className="flex w-full items-center justify-center gap-4 rounded-3xl border-2 bg-white px-4 py-3 font-semibold text-slate-400"
+            >
+              <div className="relative flex h-6 w-6 items-center">
+                <Image
+                  fill
+                  style={{ objectFit: "cover" }}
+                  src={"/google.png"}
+                  alt="google logo"
+                />
+              </div>
+              Sign in with Google
             </button>
-          </div>
-          <div className=" flex items-center gap-4">
-            <div className=" h-0.5 flex-1 bg-slate-300" />
-            <p className="text-slate-400">Or, login with your email</p>
-            <div className=" h-0.5 flex-1 bg-slate-300" />
-          </div>
-          <button
-            onClick={() => signIn("google")}
-            className="flex w-full items-center justify-center gap-4 rounded-lg border-2 bg-white px-4 py-3 font-semibold text-slate-400"
-          >
-            <div className="relative flex h-6 w-6 items-center">
-              <Image
-                fill
-                style={{ objectFit: "cover" }}
-                src={"/google.png"}
-                alt="google logo"
-              />
+            <div className=" my-4 flex items-center gap-4">
+              <div className=" h-0.5 flex-1 bg-slate-300" />
+              <p className="text-slate-400">Or, login with your email</p>
+              <div className=" h-0.5 flex-1 bg-slate-300" />
             </div>
-            Sign in with Google
-          </button>
-          <button
-            onClick={() => signIn("google")}
-            className="flex w-full items-center justify-center gap-4 rounded-lg border-2 bg-white px-4 py-3 font-semibold text-slate-400"
-          >
-            <div className="relative flex h-6 w-6 items-center">
-              <Image
-                fill
-                style={{ objectFit: "cover" }}
-                src={"/discord.png"}
-                alt="discord logo"
-              />
+            <div className="flex flex-col gap-4">
+              <div>
+                <label htmlFor="email" className="font-semibold text-slate-500">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="text"
+                  placeholder="Email"
+                  className="px- w-full rounded-3xl border-2 px-4 py-2  outline-none"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="password"
+                  className="font-semibold text-slate-500"
+                >
+                  Password
+                </label>
+                <input
+                  id="password"
+                  type="text"
+                  placeholder="Password"
+                  className="w-full rounded-3xl border-2 px-4 py-2  outline-none"
+                />
+              </div>
+              <div className="flex justify-between text-sm">
+                <div className="flex gap-2">
+                  <input type="checkbox" />
+                  <p>Remember me</p>
+                </div>
+                <p>Forgot Password ?</p>
+              </div>
+              <button className="flex w-full items-center justify-center gap-4 rounded-3xl  bg-blue-600 py-2 text-xl font-semibold text-white">
+                {/* <FontAwesomeIcon icon={faLock} /> */}
+                <p>Login</p>
+              </button>
             </div>
-            Sign in with Discord
-          </button>
+          </div>
         </div>
       </section>
-      <section className="w-2/3"></section>
+      <section
+        className="w-2/3
+      bg-blue-400"
+      ></section>
     </div>
   );
 };

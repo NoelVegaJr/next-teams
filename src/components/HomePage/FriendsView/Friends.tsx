@@ -2,6 +2,8 @@ import { useState } from "react";
 import Friend from "./Friend";
 import SearchBar from "./SearchBar";
 import type { Friend as TFriend } from "@/types/types";
+import Stack from "@/components/UI/Stack";
+import Text from "@/components/UI/Text";
 
 interface IFriendsProps {
   setView: (view: string) => void;
@@ -22,7 +24,6 @@ const Friends: React.FunctionComponent<IFriendsProps> = ({
   const searchBarOnChangeHandler = (value: string) => {
     setUsername(value);
   };
-  console.log(friends);
   const filteredFriends = friends.filter((friend) => {
     const match =
       friend.friendProfile.username.includes(username.trim()) &&
@@ -41,11 +42,11 @@ const Friends: React.FunctionComponent<IFriendsProps> = ({
     <>
       <SearchBar value={username} setValue={searchBarOnChangeHandler} />
 
-      <p className=" mb-4 font-semibold uppercase text-slate-400">
-        {view} Friends - {filteredFriends.length}
-      </p>
+      <Text weight="semibold" uppercase className=" mb-4 text-slate-400">
+        {`${view} Friends - ${filteredFriends.length}`}
+      </Text>
 
-      <ul className="">
+      <Stack gap={0}>
         {filteredFriends.map((friend) => {
           return (
             <Friend
@@ -57,7 +58,7 @@ const Friends: React.FunctionComponent<IFriendsProps> = ({
             />
           );
         })}
-      </ul>
+      </Stack>
     </>
   );
 };

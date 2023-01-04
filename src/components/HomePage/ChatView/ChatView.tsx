@@ -87,6 +87,7 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({
       participantId,
       text: newMessageRef.current.value,
     });
+    newMessageRef.current.value = "";
   };
   if (!conversationQuery.data) {
     return <div />;

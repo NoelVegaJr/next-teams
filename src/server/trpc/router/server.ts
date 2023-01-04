@@ -2,41 +2,47 @@ import { z } from "zod";
 import { router, publicProcedure } from "../trpc";
 import { prisma } from "../../db/client";
 import { Members } from "pusher-js";
+import { s3FileUpload } from "@/utils/fileUpload";
+import WorkspaceList from "@/components/Servers/Workspaces/Workspace/WorkspaceList";
 
-interface IServer {
-  id: string;
-  name: string;
-  members: number;
-  image: string;
-}
+const bucketBaseUrl = "https://codeforktestbucket.s3.amazonaws.com/";
 
 export const serverRouter = router({
   create: publicProcedure
     .input(
-      z.object({ name: z.string(), image: z.string(), userId: z.string() })
+      z.object({ name: z.string(), image: z.string(), profileId: z.string() })
     )
     .mutation(async ({ input }) => {
-      const { name, image, userId } = input;
+      const { name, image, profileId } = input;
 
       try {
-        await prisma.server.create({
+        const newServer = await prisma.server.create({
           data: {
             name,
-            image,
-            members: { createMany: { data: { userId } } },
+            image: "/defaultserver.png",
+            members: { createMany: { data: { profileId } } },
           },
         });
-        return { ok: true, error: "" };
-      } catch (error) {
-        return { ok: false, error: error };
-      }
+
+        if (image === "/defaultserver.png") return newServer;
+
+        const server = await prisma.server.update({
+          where: {
+            id: newServer.id,
+          },
+          data: {
+            image: bucketBaseUrl + newServer.id + "_" + image,
+          },
+        });
+        return server;
+      } catch (error) {}
     }),
-  getAllByUserId: publicProcedure
-    .input(z.object({ userId: z.string() }))
+  getAllByProfileId: publicProcedure
+    .input(z.object({ profileId: z.string() }))
     .query(async ({ input }) => {
-      const { userId } = input;
+      const { profileId } = input;
       const data = await prisma.server.findMany({
-        where: { members: { some: { userId } } },
+        where: { members: { some: { profileId } } },
         select: {
           id: true,
           name: true,
@@ -58,11 +64,33 @@ export const serverRouter = router({
 
       try {
         const server = await prisma.server.findUnique({
-          where: { id },
+          where: {
+            id,
+          },
           include: {
-            workspace: {
+            workspaces: {
               include: {
-                channels: { include: { members: { include: { user: true } } } },
+                _count: {
+                  select: {
+                    channels: true,
+                    members: true,
+                  },
+                },
+                channels: {
+                  include: {
+                    _count: {
+                      select: {
+                        members: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            _count: {
+              select: {
+                members: true,
+                workspaces: true,
               },
             },
           },
@@ -71,55 +99,212 @@ export const serverRouter = router({
         return server;
       } catch (err) {
         console.log(err);
-        return null;
       }
     }),
   createWorkspace: publicProcedure
     .input(
       z.object({
-        id: z.string(),
+        serverId: z.string(),
+        profileId: z.string(),
         name: z.string(),
-        image: z.string().nullish(),
-        userId: z.string(),
+        image: z.string(),
       })
     )
     .mutation(async ({ input }) => {
-      const { id, name, image, userId } = input;
+      const { serverId, name, image, profileId } = input;
 
       const newWorkspace = await prisma.workspace.create({
         data: {
           name,
-          serverId: id,
-          image: image ?? "/defaultserver.png",
-          members: { createMany: { data: { userId } } },
+          serverId,
+          image: "/defaultserver.png",
+          members: { createMany: { data: { profileId } } },
           channels: {
             create: {
               name: "General",
-              members: { createMany: { data: { userId } } },
+              members: { createMany: { data: { profileId } } },
+            },
+          },
+        },
+        include: {
+          _count: {
+            select: {
+              channels: true,
+              members: true,
+            },
+          },
+          channels: {
+            include: {
+              _count: {
+                select: {
+                  members: true,
+                },
+              },
             },
           },
         },
       });
 
-      return newWorkspace;
+      if (image === "/defaultserver.png") return newWorkspace;
+
+      const workspace = await prisma.workspace.update({
+        where: {
+          id: newWorkspace.id,
+        },
+        data: {
+          image: bucketBaseUrl + newWorkspace.id + "_" + image,
+        },
+        include: {
+          _count: {
+            select: {
+              channels: true,
+              members: true,
+            },
+          },
+          channels: {
+            include: {
+              _count: {
+                select: {
+                  members: true,
+                },
+              },
+            },
+          },
+        },
+      });
+      return workspace;
     }),
   createChannel: publicProcedure
     .input(
       z.object({
         workspaceId: z.string(),
         name: z.string(),
-        userId: z.string(),
+        profileId: z.string(),
       })
     )
     .mutation(async ({ input }) => {
-      const { workspaceId, name, userId } = input;
+      const { workspaceId, name, profileId } = input;
 
       await prisma.workspaceChannel.create({
         data: {
           workspaceId,
           name,
-          members: { createMany: { data: { userId } } },
+          members: { createMany: { data: { profileId } } },
         },
       });
+    }),
+  getWorkspaceById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      try {
+        const workspace = await prisma.workspace.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            _count: {
+              select: {
+                channels: true,
+                members: true,
+              },
+            },
+            channels: {
+              include: {
+                _count: {
+                  select: {
+                    members: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        return workspace;
+      } catch (error) {
+        console.log(error);
+      }
+    }),
+  listWorkspacesByServerId: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { id } = input;
+      try {
+        const workspaces = await prisma.workspace.findMany({
+          where: {
+            serverId: id,
+          },
+          include: {
+            _count: {
+              select: {
+                channels: true,
+                members: true,
+              },
+            },
+            channels: {
+              include: {
+                _count: {
+                  select: {
+                    members: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+        return workspaces;
+      } catch (error) {}
+    }),
+  listChannelsByWorkspaceId: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { id } = input;
+      try {
+        const workspaces = await prisma.workspaceChannel.findMany({
+          where: {
+            workspaceId: id,
+          },
+          include: {
+            _count: {
+              select: {
+                members: true,
+              },
+            },
+          },
+        });
+        return workspaces;
+      } catch (error) {}
+    }),
+  newInvitationLinkByServerId: publicProcedure
+    .input(z.object({ id: z.string(), senderProfileId: z.string() }))
+    .mutation(async ({ input }) => {
+      const { id, senderProfileId } = input;
+      const serverMember = await prisma.serverMember.findUnique({
+        where: {
+          serverMemberIdentifier: { profileId: senderProfileId, serverId: id },
+        },
+      });
+      if (!serverMember) return "";
+
+      const invitation = await prisma.serverInvitationLink.create({
+        data: { serverId: id, serverMemberId: serverMember.id },
+        select: {
+          id: true,
+        },
+      });
+
+      return "http://localhost:3000/invitation/" + invitation.id;
+    }),
+  createServerMember: publicProcedure
+    .input(z.object({ profileId: z.string(), serverId: z.string() }))
+    .mutation(async ({ input }) => {
+      const newServerMember = await prisma.serverMember.create({ data: input });
+
+      if (newServerMember) {
+        return { success: true };
+      } else {
+        return { success: false };
+      }
     }),
 });

@@ -38,3 +38,47 @@ export interface Friend {
   friendProfile: Profile;
   status: FriendShipStatus;
 }
+
+export interface ServerPreview {
+  id: string;
+  name: string;
+  image: string;
+  _count: {
+    members: number;
+  };
+}
+
+export interface IChannel {
+  _count: {
+    members: number;
+  };
+  createdAt: Date;
+  id: string;
+  name: string;
+  workspaceId: string;
+}
+
+export interface IWorkspace {
+  _count: {
+    channels: number;
+    members: number;
+  };
+  createdAt: Date;
+  id: string;
+  image: string;
+  name: string;
+  serverId: string;
+  channels: IChannel[];
+}
+
+export interface IServer {
+  id: string;
+  createdAt: Date;
+  name: string;
+  image: string;
+  _count: {
+    members: number;
+    workspaces: number;
+  };
+  workspaces: IWorkspace[];
+}

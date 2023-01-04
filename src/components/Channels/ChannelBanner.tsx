@@ -7,13 +7,12 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
-import { useContext, useState } from "react";
-import { ServerContext } from "@/context/server-context";
+import { useState } from "react";
 import ChannelContributorsModal from "./ChannelContributorsModal";
 import Modal from "@/components/UI/Modal";
+import type { IChannel } from "@/types/types";
 
-const ChannelBanner: React.FunctionComponent = () => {
-  const serverCtx = useContext(ServerContext);
+const ChannelBanner = ({ channel }: { channel: IChannel }) => {
   const [viewContributors, setViewContributors] = useState(false);
   const [viewPins, setViewPins] = useState(false);
   const [viewInfo, setViewInfo] = useState(false);
@@ -39,7 +38,7 @@ const ChannelBanner: React.FunctionComponent = () => {
       <div className=" border-b-2 p-4">
         <div className="flex items-center gap-2">
           <FontAwesomeIcon icon={faHashtag} className="text-xs" />
-          <p className="font-bold">{serverCtx?.openChannel?.name}</p>
+          <p className="font-bold">{channel.name}</p>
           <FontAwesomeIcon icon={faStar} className="text-xs text-green-700" />
         </div>
         <div className="flex items-center justify-between">
@@ -49,7 +48,7 @@ const ChannelBanner: React.FunctionComponent = () => {
               className="flex cursor-pointer items-center gap-2"
             >
               <FontAwesomeIcon icon={faUser} className="text-xs" />
-              <p>{serverCtx?.openChannel?.members.length}</p>
+              <p>{channel._count.members}</p>
             </div>
             <div
               onClick={() => setViewPins(!viewPins)}

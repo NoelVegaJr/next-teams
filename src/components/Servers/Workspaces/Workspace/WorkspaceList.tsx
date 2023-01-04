@@ -15,17 +15,27 @@ import { s3FileUpload } from "@/utils/fileUpload";
 import { UserContext } from "@/context/auth-context";
 import { ServerOptionsContext } from "@/context/server-options-context";
 import Link from "next/link";
+import type { IWorkspace } from "@/types/types";
+import { Profile } from "@prisma/client";
 
-const WorkspaceList: React.FunctionComponent = () => {
+const WorkspaceList = ({
+  initialWorkspace,
+  profile,
+  serverName,
+}: {
+  initialWorkspace: IWorkspace;
+  profile: Profile;
+  serverName: string;
+}) => {
   const utils = trpc.useContext();
-  const userCtx = useContext(UserContext);
-  const serverCtx = useContext(ServerContext);
-  const serverOptionsCtx = useContext(ServerOptionsContext);
   const router = useRouter();
-  const server = trpc.server.getServerById.useQuery({ id: router.query.id });
+  const [workspace, setWorkspace] = useState<IWorkspace>(initialWorkspace);
+  const workspaceQuery = trpc.server.getWorkspaceById.useQuery({
+    id: initialWorkspace.id,
+  });
   const workspaceMutation = trpc.server.createWorkspace.useMutation({
     onSuccess: () => {
-      utils.user.profile.invalidate();
+      utils.server.getServerById.invalidate();
     },
   });
   const [workspaceName, setWorkspaceName] = useState("");
@@ -38,121 +48,47 @@ const WorkspaceList: React.FunctionComponent = () => {
   }, []);
 
   useEffect(() => {
-    if (server.data?.workspace) {
-      serverCtx?.setWorkspace(server.data?.workspace[0]);
-      serverCtx?.setChannel(server.data?.workspace[0]?.channels[0]);
+    if (workspaceQuery.data) {
+      setWorkspace(workspaceQuery.data);
     }
-  }, [server.data?.workspace]);
+  }, [workspaceQuery.data]);
 
-  const handleUpload = async () => {
-    await s3FileUpload(imageFile);
+  // const handleUpload = async () => {
+  //   await s3FileUpload(imageFile);
 
-    // if (!userCtx?.user?.id) return;
+  //   // if (!userCtx?.user?.id) return;
 
-    // if (!imageFile) {
-    //   serverMutation.mutate({
-    //     userId: userCtx.user.id,
-    //     name: serverName,
-    //     image: "/defaultserver.png",
-    //   });
-    // } else {
-    //   serverMutation.mutate({
-    //     userId: userCtx.user.id,
-    //     name: serverName,
-    //     image: imageFile.name,
-    //   });
-    // }
-  };
+  //   // if (!imageFile) {
+  //   //   serverMutation.mutate({
+  //   //     userId: userCtx.user.id,
+  //   //     name: serverName,
+  //   //     image: "/defaultserver.png",
+  //   //   });
+  //   // } else {
+  //   //   serverMutation.mutate({
+  //   //     userId: userCtx.user.id,
+  //   //     name: serverName,
+  //   //     image: imageFile.name,
+  //   //   });
+  //   // }
+  // };
 
-  const createWorkspaceHandler = () => {
-    if (!workspaceName || !userCtx?.profile?.user?.id) return;
-    workspaceMutation.mutate({
-      id: router.query.id,
-      name: workspaceName,
-      image: imageFile?.name ?? "/defaultserver.png",
-      userId: userCtx.profile.user.id,
-    });
-    setNewWorkspaceModal(false);
-  };
-  console.log("SERVER CTX: ", serverCtx.server);
-  console.log("workspace list: ", serverCtx?.server?.workspace);
+  // const createWorkspaceHandler = () => {
+  //   workspaceMutation.mutate({
+  //     id: router.query.id,
+  //     name: workspaceName,
+  //     image: imageFile?.name ?? "/defaultserver.png",
+  //     userId: userCtx.profile.user.id,
+  //   });
+  //   setNewWorkspaceModal(false);
+  // };
 
   return (
     <>
-      {!serverCtx?.server?.workspace?.length && loaded && (
-        <Modal
-          close={() => {
-            if (server.data?.workspace.length === 0) return;
-            setNewWorkspaceModal(false);
-          }}
-        >
-          <div
-            className="mx-auto w-96 rounded bg-white"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex justify-between border-b p-2">
-              <p className=" font-semibold">Create Workspace</p>
-              <button onClick={() => setNewWorkspaceModal(false)}>
-                <FontAwesomeIcon icon={faX} className="text-red-600" />
-              </button>
-            </div>
-            <div className="p-2">
-              <div className="group relative mx-auto w-fit cursor-pointer overflow-hidden rounded">
-                <label htmlFor="serverImg" className=" w-full  text-white">
-                  <div className="relative h-32 w-32 overflow-hidden rounded">
-                    <Image
-                      src="/defaultserver.png"
-                      fill
-                      alt="default server logo"
-                      style={{ objectFit: "cover" }}
-                    />
-                  </div>
-                  <input
-                    id="serverImg"
-                    type="file"
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (files) {
-                        setImageFile(files[0]);
-                      }
-                    }}
-                    accept=".png,.jpg, .jpeg"
-                    className="text-white"
-                    hidden={true}
-                  />
-                </label>
-                <label
-                  htmlFor="serverImg"
-                  className="absolute top-0  hidden h-full w-full cursor-pointer place-content-center bg-black/10 group-hover:grid"
-                >
-                  <FontAwesomeIcon icon={faUpload} className="text-2xl" />
-                </label>
-              </div>
-              <input
-                type="text"
-                placeholder="Workspace Name"
-                className="my-2 w-full rounded border p-1 outline-none"
-                value={workspaceName}
-                onChange={(e) => setWorkspaceName(e.target.value)}
-              />
-
-              <div className=" text-right">
-                <button
-                  onClick={createWorkspaceHandler}
-                  className="rounded bg-green-600 px-3 py-1 text-white"
-                >
-                  Create
-                </button>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      )}
       {newWorkspaceModal && (
         // (newWorkspaceModal && (
         <Modal
           close={() => {
-            if (server.data?.workspace.length === 0) return;
             setNewWorkspaceModal(false);
           }}
         >
@@ -208,7 +144,7 @@ const WorkspaceList: React.FunctionComponent = () => {
 
               <div className=" text-right">
                 <button
-                  onClick={createWorkspaceHandler}
+                  // onClick={createWorkspaceHandler}
                   className="rounded bg-green-600 px-3 py-1 text-white"
                 >
                   Create
@@ -233,7 +169,7 @@ const WorkspaceList: React.FunctionComponent = () => {
         <button
           className="mb-4 border-b pb-4"
           onClick={() => {
-            serverOptionsCtx.open();
+            // serverOptionsCtx.open();
             console.log("click server tile");
           }}
         >

@@ -1,4 +1,4 @@
-import { useContext, useState } from "react";
+import { useState } from "react";
 import WorkspaceList from "./WorkspaceList";
 import DirectMessageDropdown from "@/components/HomePage/DirectMessagesDropdown";
 import ChannelsDropdown from "@/components/Channels/ChannelsDropdown";
@@ -11,29 +11,33 @@ import {
   faX,
 } from "@fortawesome/free-solid-svg-icons";
 import { trpc } from "@/utils/trpc";
-import { UserContext } from "@/context/auth-context";
 import Modal from "@/components/UI/Modal";
 import WorkspaceOptions from "./WorkspaceOptions";
+import { Profile } from "@prisma/client";
 
-const WorkspaceSideNav = () => {
-  const serverCtx = useContext(ServerContext);
+const WorkspaceSideNav = ({
+  profile,
+  serverName,
+}: {
+  profile: Profile;
+  serverName: string;
+}) => {
   const [isOpen, setIsOpen] = useState(true);
-  const userCtx = useContext(UserContext);
 
   const [openWorkspaceOptions, setOpenWorkspaceOptions] = useState(false);
   const [newChannelModal, setNewChannelModal] = useState(false);
   const createChannelMutation = trpc.server.createChannel.useMutation();
   const [newChannelName, setNewChannelName] = useState("");
-  const createChannelHandler = () => {
-    if (!newChannelName || !userCtx?.user?.id || !serverCtx?.openWorkspace?.id)
-      return;
+  // const createChannelHandler = () => {
+  //   if (!newChannelName || !userCtx?.user?.id || !serverCtx?.openWorkspace?.id)
+  //     return;
 
-    createChannelMutation.mutate({
-      name: newChannelName,
-      userId: userCtx.user.id,
-      workspaceId: serverCtx.openWorkspace.id,
-    });
-  };
+  //   createChannelMutation.mutate({
+  //     name: newChannelName,
+  //     userId: userCtx.user.id,
+  //     workspaceId: serverCtx.openWorkspace.id,
+  //   });
+  // };
   return (
     <>
       {newChannelModal && (
@@ -53,7 +57,7 @@ const WorkspaceSideNav = () => {
               />
               <div className="text-right">
                 <button
-                  onClick={createChannelHandler}
+                  // onClick={createChannelHandler}
                   className="w-fit rounded bg-green-500 py-1 px-2 font-semibold text-white"
                 >
                   Create
@@ -64,7 +68,7 @@ const WorkspaceSideNav = () => {
         </Modal>
       )}
       <section className={`flex h-full w-fit bg-slate-300 `}>
-        <WorkspaceList />
+        <WorkspaceList profile={profile} serverName={serverName} />
 
         <div
           className={`flex  flex-col justify-between bg-slate-600 text-slate-200 transition-width duration-300 ${
@@ -80,7 +84,7 @@ const WorkspaceSideNav = () => {
                   }}
                   className="flex w-full items-center justify-between p-4 text-xl font-semibold text-white transition-all duration-200 hover:bg-slate-600 hover:brightness-110"
                 >
-                  {serverCtx?.openWorkspace?.name}
+                  {/* {serverCtx?.openWorkspace?.name} */}
                   {!openWorkspaceOptions ? (
                     <FontAwesomeIcon icon={faChevronDown} />
                   ) : (

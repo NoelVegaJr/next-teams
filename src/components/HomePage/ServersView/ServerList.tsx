@@ -2,55 +2,83 @@ import { faPlus, faUpload, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import Link from "next/link";
 import Image from "next/image";
-import { useContext, useState } from "react";
+import { useEffect, useState } from "react";
 import Modal from "@/components/UI/Modal";
 import { s3FileUpload } from "@/utils/fileUpload";
 import { trpc } from "@/utils/trpc";
-import { UserContext } from "@/context/auth-context";
+import type { ServerPreview } from "@/types/types";
+import Text from "@/components/UI/Text";
+import Stack from "@/components/UI/Stack";
+import Tile from "@/components/UI/Tile";
+import type { Profile } from "@prisma/client";
 
-interface IServer {
-  id: string;
-  name: string;
-  _count: { members: number };
-  image: string;
-}
+const convertToBase64 = (file: File) => {
+  return new Promise<string | ArrayBuffer | null>((resolve, reject) => {
+    const fileReader = new FileReader();
+    if (!file) {
+      alert("please select an image");
+    } else {
+      fileReader.readAsDataURL(file);
+      fileReader.onload = () => {
+        resolve(fileReader.result);
+      };
+    }
+    fileReader.onerror = (error) => {
+      reject(error);
+    };
+  });
+};
 
 const ServerList = ({
-  email,
-  servers,
+  username,
+  initialServers,
+  profile,
 }: {
-  email: string;
-  userId: string;
-  servers: IServer[] | undefined | any;
+  username: string;
+  profile: Profile;
+  initialServers: ServerPreview[];
 }) => {
   const utils = trpc.useContext();
-  const userCtx = useContext(UserContext);
+  const [servers, setServers] = useState(initialServers);
+  const serverListQuery = trpc.server.getAllByProfileId.useQuery({
+    profileId: profile.id,
+  });
   const [newServerModal, setServerModal] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState("/defaultserver.png");
   const [serverName, setServerName] = useState("");
   const serverMutation = trpc.server.create.useMutation({
     onSuccess: () => {
-      utils.user.profile.invalidate();
+      utils.server.getAllByProfileId.invalidate();
     },
   });
 
-  const handleUpload = async () => {
-    await s3FileUpload(imageFile);
+  useEffect(() => {
+    if (serverListQuery.data) {
+      setServers(serverListQuery.data);
+    }
+  }, [serverListQuery.data]);
 
-    if (!userCtx?.profile?.user?.id) return;
+  const handleUpload = async () => {
+    const cleanServerName = serverName.trim();
+    if (!cleanServerName) return;
 
     if (!imageFile) {
       serverMutation.mutate({
-        userId: userCtx.profile.user.id,
+        profileId: profile.id,
         name: serverName,
         image: "/defaultserver.png",
       });
     } else {
-      serverMutation.mutate({
-        userId: userCtx.profile.user.id,
+      const fileName = `serverAvatar.${imageFile.type.split("/")[1]}`;
+      const server = await serverMutation.mutateAsync({
+        profileId: profile.id,
         name: serverName,
-        image: imageFile.name,
+        image: fileName,
       });
+      if (server?.id && server.image !== "/defaultserver.png") {
+        await s3FileUpload(imageFile, server.id + "_" + fileName);
+      }
     }
     setServerModal(false);
   };
@@ -73,7 +101,7 @@ const ServerList = ({
                 <label htmlFor="serverImg" className=" w-full  text-white">
                   <div className="relative h-32 w-32 overflow-hidden rounded">
                     <Image
-                      src="/defaultserver.png"
+                      src={imagePreview}
                       fill
                       alt="default server logo"
                       style={{ objectFit: "cover" }}
@@ -85,10 +113,14 @@ const ServerList = ({
                   <input
                     id="serverImg"
                     type="file"
-                    onChange={(e) => {
-                      const files = e.target.files;
-                      if (files) {
-                        setImageFile(files[0]);
+                    onChange={async (e) => {
+                      const files = e.target.files as FileList;
+                      if (files[0]) {
+                        const base64 = await convertToBase64(files[0]);
+                        if (typeof base64 === "string") {
+                          setImageFile(files[0]);
+                          setImagePreview(base64);
+                        }
                       }
                     }}
                     accept=".png,.jpg, .jpeg"
@@ -124,52 +156,37 @@ const ServerList = ({
         </Modal>
       )}
       <div className="">
-        <div className="flex items-center justify-between rounded-t-md bg-slate-200 p-3 font-semibold">
-          <p className="">Servers for {email}</p>
+        <Stack
+          type="row"
+          center
+          className="justify-between rounded-t-md bg-slate-200 p-3 "
+        >
+          <Text weight="semibold">{`Servers for ${username}`}</Text>
           <button
             onClick={() => setServerModal(true)}
             className="flex items-center gap-2 rounded py-2 px-2 font-semibold text-slate-800 "
           >
             <FontAwesomeIcon icon={faPlus} className="text-slate-800" />
-            <p>New Server</p>
+            <Text>New Server</Text>
           </button>
-        </div>
+        </Stack>
 
         <ul className="divide-y rounded-b-lg bg-white">
-          {servers?.map((server: any) => {
+          {servers.map((server) => {
             return (
               <li
-                key={server.server.id}
+                key={server.id}
                 className="flex items-center  justify-between gap-4 rounded-b-md bg-white p-4"
               >
-                <div className="flex items-center gap-4">
-                  <div className="relative flex h-16 w-16 overflow-hidden rounded-lg">
-                    <Image
-                      style={{ objectFit: "cover" }}
-                      src={server.server.image}
-                      fill
-                      alt=""
-                      sizes="(max-width: 768px) 100vw,
-              (max-width: 1200px) 50vw,
-              33vw"
-                    />
-                  </div>
+                <Stack type="row" center gap={4}>
+                  <Tile size="md" src={server.image} />
                   <div>
-                    <p className="font-bold">{server.server.name}</p>
-                    <div className="text-xs">
-                      {server.server?._count?.members} members
-                    </div>
+                    <Text weight="bold">{server.name}</Text>
+                    <Text size="xs">{`${server._count.members} members`}</Text>
                   </div>
-                </div>
+                </Stack>
                 <Link
-                  href={{
-                    pathname: `/server/[name]`,
-                    query: {
-                      id: server.server.id,
-                      name: server.server.name,
-                    },
-                  }}
-                  // as={`/server/${server.name}`}
+                  href={`/server/${server.id}`}
                   className="rounded bg-slate-800 p-3 text-sm font-semibold uppercase text-white"
                 >
                   Launch Server

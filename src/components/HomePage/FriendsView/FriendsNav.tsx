@@ -1,6 +1,6 @@
 import * as React from "react";
-import { useContext } from "react";
-import { UserContext } from "@/context/auth-context";
+import Stack from "@/components/UI/Stack";
+import Text from "@/components/UI/Text";
 
 interface IFriendsNavProps {
   active: string;
@@ -13,15 +13,16 @@ const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
   setActive,
   pending,
 }) => {
+  const navLinkBaseStyle = "cursor-pointer rounded px-2 hover:bg-slate-500";
   return (
     <nav className="flex  border-b border-b-slate-700 p-3 ">
-      <p className="border-r border-r-slate-500 px-4 font-bold text-slate-100">
+      <Text className="border-r border-r-slate-500 px-4 font-bold text-slate-100">
         Friends
-      </p>
-      <ul className="flex gap-4  px-2 font-semibold text-slate-300 ">
+      </Text>
+      <Stack type="row" gap={4} className="px-2 font-semibold text-slate-300 ">
         <li
           onClick={() => setActive("online")}
-          className={`cursor-pointer rounded px-2 hover:bg-slate-500 ${
+          className={`${navLinkBaseStyle} ${
             active === "online" && "bg-slate-500"
           }`}
         >
@@ -29,7 +30,7 @@ const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
         </li>
         <li
           onClick={() => setActive("all")}
-          className={`cursor-pointer rounded px-2 hover:bg-slate-500 ${
+          className={`${navLinkBaseStyle} ${
             active === "all" && "bg-slate-500"
           }`}
         >
@@ -50,7 +51,7 @@ const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
         </li>
         <li
           onClick={() => setActive("blocked")}
-          className={`cursor-pointer rounded px-2 hover:bg-slate-500 ${
+          className={`${navLinkBaseStyle} ${
             active === "blocked" && "bg-slate-500"
           }`}
         >
@@ -62,7 +63,7 @@ const FriendsNav: React.FunctionComponent<IFriendsNavProps> = ({
         >
           Add Friend
         </li>
-      </ul>
+      </Stack>
     </nav>
   );
 };
