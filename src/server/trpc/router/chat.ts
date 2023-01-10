@@ -2,7 +2,6 @@ import { router, publicProcedure } from "../trpc";
 import { z } from "zod";
 import pusher from "../../../utils/pusher";
 import { prisma } from "../../db/client";
-import { profile } from "console";
 
 export const chatRouter = router({
   push: publicProcedure
@@ -45,7 +44,7 @@ export const chatRouter = router({
         });
 
         if (!message) return {};
-        await pusher.trigger("friend", "message", message);
+        await pusher.trigger(conversationId, "message", message);
       } catch (err) {
         console.log(err);
       }
@@ -210,6 +209,35 @@ export const chatRouter = router({
         });
 
         return conversation;
+      } catch (error) {
+        console.log(error);
+      }
+    }),
+  getMessagesConversationById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ input }) => {
+      const { id } = input;
+
+      try {
+        const messages = await prisma.message.findMany({
+          where: {
+            conversationId: id,
+          },
+          select: {
+            conversationId: true,
+            id: true,
+            date: true,
+            text: true,
+            participant: {
+              select: {
+                id: true,
+                profile: true,
+              },
+            },
+          },
+        });
+
+        return messages;
       } catch (error) {
         console.log(error);
       }

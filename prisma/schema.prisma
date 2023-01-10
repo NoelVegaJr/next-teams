@@ -66,19 +66,46 @@ enum Status {
 }
 
 model Profile {
-  id            String                    @id @default(cuid())
-  userId        String                    @unique
-  name          String
-  username      String                    @unique
-  avatar        String
-  banner        String
-  status        Status                    @default(online)
-  user          User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  friendShips   Friendship[]              @relation("user")
-  conversations ConversationParticipant[]
-  servers       ServerMember[]
-  workspaces    WorkspaceMember[]
-  channels      WorkspaceChannelMember[]
+  id                         String                    @id @default(cuid())
+  userId                     String                    @unique
+  name                       String
+  username                   String                    @unique
+  avatar                     String
+  banner                     String
+  status                     Status                    @default(online)
+  user                       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  participatingConversations ConversationParticipant[]
+  // friendShips                Friendship[]              @relation("user")
+  // serverMemberships          ServerMember[]
+  // workspaceMemberships       WorkspaceMember[]
+  // channelMemberships         WorkspaceChannelMember[]
+  Contributer                Contributer[]
+  Company                    Company?                  @relation(fields: [companyId], references: [id])
+  companyId                  String?
+}
+
+model Company {
+  id        String    @id @default(cuid())
+  name      String    @unique
+  country   String
+  address   String
+  createdAt DateTime  @default(now())
+  phone     String
+  image     String?
+  banner    String?
+  Staff     Profile[]
+}
+
+model Inquiry {
+  id          String   @id @default(cuid())
+  companyName String   @unique
+  fname       String
+  lname       String
+  email       String
+  country     String
+  address     String
+  createdAt   DateTime @default(now())
+  phone       String
 }
 
 model VerificationToken {
@@ -89,92 +116,99 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-model Friendship {
-  id            String           @id @default(cuid())
-  profileId     String
-  friendId      String
-  friendProfile Profile          @relation("user", fields: [profileId], references: [id], onDelete: Cascade)
-  status        FriendShipStatus
+// model Friendship {
+//   id            String           @id @default(cuid())
+//   profileId     String
+//   friendId      String
+//   friendProfile Profile          @relation("user", fields: [profileId], references: [id])
+//   status        FriendShipStatus
+// }
+
+// enum FriendShipStatus {
+//   recieved
+//   pending
+//   blocked
+//   friends
+// }
+
+// model Server {
+//   id                   String                 @id @default(cuid())
+//   name                 String
+//   createdAt            DateTime               @default(now())
+//   image                String
+//   members              ServerMember[]
+//   workspaces           Workspace[]
+//   ServerInvitationLink ServerInvitationLink[]
+// }
+
+// model ServerMember {
+//   id              String                 @id @default(cuid())
+//   profileId       String
+//   serverId        String
+//   server          Server                 @relation(fields: [serverId], references: [id])
+//   profile         Profile                @relation(fields: [profileId], references: [id])
+//   sentInvitations ServerInvitationLink[]
+
+// @@unique([profileId, serverId], name: "serverMemberIdentifier")
+// }
+
+// model ServerInvitationLink {
+//   id             String       @id @default(cuid())
+//   serverId       String
+//   createdAt      DateTime     @default(now())
+//   server         Server       @relation(fields: [serverId], references: [id])
+//   serverMemberId String
+//   profile        ServerMember @relation(fields: [serverMemberId], references: [id])
+// }
+
+model Project {
+  id           String        @id @default(cuid())
+  name         String
+  createdAt    DateTime      @default(now())
+  image        String
+  members      Contributer[]
+  Conversation Conversation?
+  Taskboard    Taskboard?
+  taskboardId  String        @unique
 }
 
-enum FriendShipStatus {
-  recieved
-  pending
-  blocked
-  friends
+model Contributer {
+  id           String         @id @default(cuid())
+  profileId    String
+  projectId    String
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  profile      Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  TaskAssignee TaskAssignee[]
 }
 
-model Server {
-  id                   String                 @id @default(cuid())
-  name                 String
-  createdAt            DateTime               @default(now())
-  image                String
-  members              ServerMember[]
-  workspaces           Workspace[]
-  ServerInvitationLink ServerInvitationLink[]
-}
+// model WorkspaceChannel {
+//   id             String                   @id @default(cuid())
+//   workspaceId    String
+//   name           String
+//   createdAt      DateTime                 @default(now())
+//   members        WorkspaceChannelMember[]
+//   workspace      Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+//   conversationId String
+//   conversation   Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+// }
 
-model ServerMember {
-  id              String                 @id @default(cuid())
-  profileId       String
-  serverId        String
-  server          Server                 @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  profile         Profile                @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  sentInvitations ServerInvitationLink[]
-
-  @@unique([profileId, serverId], name: "serverMemberIdentifier")
-}
-
-model ServerInvitationLink {
-  id             String       @id @default(cuid())
-  serverId       String
-  createdAt      DateTime     @default(now())
-  server         Server       @relation(fields: [serverId], references: [id])
-  serverMemberId String
-  profile        ServerMember @relation(fields: [serverMemberId], references: [id])
-}
-
-model Workspace {
-  id        String             @id @default(cuid())
-  name      String
-  createdAt DateTime           @default(now())
-  image     String
-  members   WorkspaceMember[]
-  serverId  String
-  server    Server             @relation(fields: [serverId], references: [id], onDelete: Cascade)
-  channels  WorkspaceChannel[]
-}
-
-model WorkspaceMember {
-  id          String    @id @default(cuid())
-  profileId   String
-  workspaceId String
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
-}
-
-model WorkspaceChannel {
-  id          String                   @id @default(cuid())
-  workspaceId String
-  name        String
-  createdAt   DateTime                 @default(now())
-  members     WorkspaceChannelMember[]
-  workspace   Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-}
-
-model WorkspaceChannelMember {
-  id        String           @id @default(cuid())
-  channelId String
-  joinAt    DateTime         @default(now())
-  profileId String
-  profile   Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  channel   WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-}
+// model WorkspaceChannelMember {
+//   id            String           @id @default(cuid())
+//   channelId     String
+//   joinAt        DateTime         @default(now())
+//   profileId     String
+//   profile       Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
+//   channel       WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
+//   exited        Boolean          @default(false)
+//   assignedTasks TaskAssignee[]
+// }
 
 model Conversation {
   id           String                    @id @default(cuid())
   participants ConversationParticipant[]
   messages     Message[]
+  Project      Project                   @relation(fields: [projectId], references: [id])
+  projectId    String                    @unique
 }
 
 model ConversationParticipant {
@@ -194,4 +228,60 @@ model Message {
   conversation   Conversation            @relation(fields: [conversationId], references: [id], onDelete: Cascade)
   participantId  String
   participant    ConversationParticipant @relation(fields: [participantId], references: [id], onDelete: Cascade)
+}
+
+model Taskboard {
+  id        String     @id @default(cuid())
+  createdAt DateTime   @default(now())
+  name      String
+  projectId String     @unique
+  Project   Project    @relation(fields: [projectId], references: [id])
+  TaskLists TaskList[]
+}
+
+model TaskList {
+  id          String    @id @default(cuid())
+  createAt    DateTime  @default(now())
+  name        String
+  tasks       Task[]
+  taskBoardId String
+  taskboard   Taskboard @relation(fields: [taskBoardId], references: [id])
+}
+
+model Task {
+  id                String              @id @default(cuid())
+  taskListId        String
+  createAt          DateTime            @default(now())
+  name              String
+  description       String              @db.Text
+  taskCheckListItem TaskCheckListItem[]
+  taskComments      TaskComments[]
+  taskList          TaskList            @relation(fields: [taskListId], references: [id])
+  assignees         TaskAssignee[]
+  isComplete        Boolean
+}
+
+model TaskAssignee {
+  id            String      @id @default(cuid())
+  contributorId String
+  taskId        String
+  task          Task        @relation(fields: [taskId], references: [id])
+  Contributor   Contributer @relation(fields: [contributorId], references: [id])
+}
+
+model TaskCheckListItem {
+  id         String  @id @default(cuid())
+  taskId     String
+  task       Task    @relation(fields: [taskId], references: [id])
+  text       String
+  index      Int
+  isComplete Boolean
+}
+
+model TaskComments {
+  id        String   @id @default(cuid())
+  createdAt DateTime
+  taskId    String
+  task      Task     @relation(fields: [taskId], references: [id])
+  text      String   @db.Text
 }

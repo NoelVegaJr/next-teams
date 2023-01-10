@@ -8,7 +8,8 @@
       "@/styles/*": ["styles/*"],
       "@/env/*": ["env/*"],
       "@/server/*": ["server/*"],
-      "@/types/*": ["types/*"]
+      "@/types/*": ["types/*"],
+      "@/store/*": ["store/*"]
     },
     "target": "es2017",
     "lib": ["dom", "dom.iterable", "esnext"],
@@ -33,7 +34,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.mjs",
-    "src/components/TaskBoard"
+    "src/components/TaskBoard",
+    "src/components/HomePage/CalendarView"
   ],
   "exclude": ["node_modules"]
 }

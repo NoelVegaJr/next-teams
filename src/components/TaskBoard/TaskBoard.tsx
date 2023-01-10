@@ -74,7 +74,7 @@ const TaskBoard: React.FunctionComponent = () => {
                   );
                 })}
                 {provided.placeholder}
-                <li className=" ">
+                <li className="w-52 ">
                   <div className="w-full rounded bg-slate-900 p-1">
                     {!editNewTaskList ? (
                       <button

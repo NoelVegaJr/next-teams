@@ -16,10 +16,10 @@ const StatusBubble: React.FunctionComponent<IStatusBubbleProps> = ({
 
   switch (status) {
     case "online":
-      fillingStyle = "bg-green-700";
+      fillingStyle = "bg-green-500";
       break;
     case "offline":
-      fillingStyle = "bg-red-700";
+      fillingStyle = "bg-red-500";
       break;
     case "away":
       fillingStyle = "bg-yellow-700";

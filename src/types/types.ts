@@ -1,37 +1,30 @@
-import type { Status, Profile, FriendShipStatus } from "@prisma/client";
+import type {
+  Status,
+  Profile,
+  FriendShipStatus,
+  WorkspaceChannelMember,
+  WorkspaceChannel,
+  Workspace,
+} from "@prisma/client";
 export type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
-export interface IUser {
-  id: string;
-  name: string | null;
-  username: string | null;
-  image: string | null;
-  status: Status;
-}
-
-export interface IConversationParticipant {
+export interface ConversationParticipant {
   id: string;
   profile: Profile;
 }
 
-export interface IMessage {
+export interface MessageAndParticipant {
   id: string;
   conversationId: string;
   date: Date;
   text: string;
-  participant: IConversationParticipant;
+  participant: ConversationParticipant;
 }
 
-export interface IConversationWithMessages {
+export interface ConversationWithParticipants {
   id: string;
-  participants: IConversationParticipant[];
-  messages: IMessage[];
-}
-
-export interface IConversationWithParticipant {
-  id: string;
-  participants: IConversationParticipant[];
-  messages: IMessage[];
+  participants: ConversationParticipant[];
+  messages: MessageAndParticipant[];
 }
 
 export interface Friend {
@@ -46,6 +39,14 @@ export interface ServerPreview {
   _count: {
     members: number;
   };
+}
+
+export interface IChannelMember {
+  id: string;
+  channelId: string;
+  joinAt: Date;
+  profileId: string;
+  profile: Profile;
 }
 
 export interface IChannel {
@@ -81,4 +82,22 @@ export interface IServer {
     workspaces: number;
   };
   workspaces: IWorkspace[];
+}
+
+export interface ActiveWorkspace extends Workspace {
+  channels: WorkspaceChannel[];
+}
+
+export interface WorkspaceChannelMemberAndChannel
+  extends WorkspaceChannelMember {
+  channel: WorkspaceChannel;
+}
+
+export interface ServerProfile extends Profile {
+  workspaceMemberships: {
+    workspace: Workspace & {
+      channels: WorkspaceChannel[];
+    };
+  }[];
+  channelMemberships: WorkspaceChannelMemberAndChannel[];
 }

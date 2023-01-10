@@ -43,4 +43,5 @@ export const clientSchema = z.object({
  */
 export const clientEnv = {
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
+  GOOGLE_MAPS_KEY: z.string(),
 };

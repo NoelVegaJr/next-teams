@@ -11,7 +11,7 @@ export const userRouter = router({
         const profile = await prisma.profile.findUnique({
           where: { userId },
           include: {
-            servers: true,
+            serverMemberships: true,
           },
         });
 
@@ -113,22 +113,21 @@ export const userRouter = router({
         return { error: "application error :/" };
       }
     }),
-  getFriends: publicProcedure
-    .input(z.object({ profileId: z.string() }))
+  getStaffByCompanyId: publicProcedure
+    .input(z.object({ companyId: z.string() }))
     .query(async ({ input }) => {
-      const { profileId } = input;
+      const { companyId } = input;
       try {
-        const friends = await prisma.friendship.findMany({
+        const members = await prisma.profile.findMany({
           where: {
-            friendId: profileId,
-          },
-          select: {
-            friendProfile: true,
-            status: true,
+            companyId: "1",
           },
         });
-        return friends;
-      } catch (error) {}
+        return { ok: true, members };
+      } catch (error) {
+        console.log(error);
+        return { ok: false, members: [] };
+      }
     }),
   deleteFriendRequest: publicProcedure
     .input(z.object({ profileId: z.string(), friendProfileId: z.string() }))
@@ -215,5 +214,50 @@ export const userRouter = router({
       } catch (err) {
         console.log(err);
       }
+    }),
+  getServerProfile: publicProcedure
+    .input(z.object({ serverId: z.string(), profileId: z.string() }))
+    .query(async ({ input }) => {
+      const { serverId, profileId } = input;
+      const profile = await prisma.profile.findUnique({
+        where: {
+          id: profileId,
+        },
+        include: {
+          workspaceMemberships: {
+            where: {
+              workspace: {
+                serverId,
+              },
+            },
+            select: {
+              workspace: {
+                include: {
+                  channels: {
+                    where: {
+                      members: {
+                        some: {
+                          profile: {
+                            id: profileId,
+                          },
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          channelMemberships: {
+            where: {
+              profileId,
+            },
+            include: {
+              channel: true,
+            },
+          },
+        },
+      });
+      return profile;
     }),
 });

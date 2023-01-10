@@ -2,14 +2,13 @@ import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
 
-import MoreInfoSection from "@/components/more-info/more-info";
-import StatsSection from "@/components/stats/stats-section";
-import InfoSection from "@/components/info/info-section";
 import { motion } from "framer-motion";
 import { useRouter } from "next/router";
-import HomeNavbar from "@/components/navbar/home-navbar";
-import TrustedBySection from "@/components/logos/logos-section";
-import ImageView from "@/components/info/ImageView";
+import InfoSection from "@/components/Landing/info/info-section";
+import TrustedBySection from "@/components/Landing/logos/logos-section";
+import MoreInfoSection from "@/components/Landing/more-info/more-info";
+import HomeNavbar from "@/components/Landing/navbar/home-navbar";
+import StatsSection from "@/components/Landing/stats/stats-section";
 
 const Home: NextPage = () => {
   const router = useRouter();
@@ -33,7 +32,7 @@ const Home: NextPage = () => {
               whileHover={{ scale: 1.01 }}
               whileTap={{ scale: 0.99 }}
               className="w-full rounded bg-slate-200 py-4 text-lg font-semibold text-slate-900 transition-all duration-300 "
-              onClick={() => router.push("/auth")}
+              onClick={() => router.push("/sign-up")}
             >
               Sign up today
             </motion.button>

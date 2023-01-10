@@ -1,10 +1,7 @@
 import { getSession, signIn, useSession } from "next-auth/react";
-import * as React from "react";
 import Image from "next/image";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faLock } from "@fortawesome/free-solid-svg-icons";
 import type { NextPageContext } from "next";
-import Link from "next/link";
+import { useEffect } from "react";
 
 export const getServerSideProps = async (context: NextPageContext) => {
   const user = await getSession(context);
@@ -25,7 +22,7 @@ export const getServerSideProps = async (context: NextPageContext) => {
 
 const Auth: React.FunctionComponent = () => {
   const { data: user } = useSession();
-  React.useEffect(() => {
+  useEffect(() => {
     console.log(user);
   }, [user]);
   return (

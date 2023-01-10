@@ -1,10 +1,12 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
-
-import { prisma } from "../../server/db/client";
+import pusher from "@/utils/pusher";
 
 const examples = async (req: NextApiRequest, res: NextApiResponse) => {
-  console.log("browser closed");
-  res.status(200);
+  console.log("incoming");
+  console.log(req.body);
+  await pusher.trigger("stats", "message", req.body);
+
+  res.status(200).send("hello");
 };
 
 export default examples;

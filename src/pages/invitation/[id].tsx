@@ -68,9 +68,7 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
   const threshold = invitation.createdAt.getTime() + 1000 * 60 * 60;
 
   if (new Date().getTime() < threshold) {
-    console.log(new Date(invitation?.createdAt?.getTime()));
     invitation = JSON.parse(JSON.stringify(invitation));
-    console.log(invitation);
     return { props: { ...invitation, isValid: true, myProfile: profile } };
   } else {
     return {

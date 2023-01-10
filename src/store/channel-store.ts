@@ -1,17 +1,20 @@
-import { IChannel } from "@/types/types";
-import { string } from "zod";
+import type { IChannel, WorkspaceChannelMemberAndChannel } from "@/types/types";
+import { WorkspaceChannel } from "@prisma/client";
 import create from "zustand";
 
 interface activeChannels {
-  active: Map<string, IChannel>;
-  set: (workspaceId: string, channel: IChannel) => void;
+  active: Map<string, WorkspaceChannelMemberAndChannel>;
+  set: (
+    workspaceId: string,
+    channelMember: WorkspaceChannelMemberAndChannel
+  ) => void;
 }
 
 const useChannelStore = create<activeChannels>()((set) => ({
-  active: new Map<string, IChannel>(),
-  set: (workspaceId, channelId) => {
+  active: new Map<string, WorkspaceChannelMemberAndChannel>(),
+  set: (workspaceId, channelMember) => {
     set((state) => ({
-      active: state.active.set(workspaceId, channelId),
+      active: state.active.set(workspaceId, channelMember),
     }));
   },
 }));
