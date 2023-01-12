@@ -55,7 +55,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  profile       Profile?
+  profile       Profile?  @relation(fields: [profileId], references: [id])
+  profileId     String?
 }
 
 enum Status {
@@ -67,13 +68,16 @@ enum Status {
 
 model Profile {
   id                         String                    @id @default(cuid())
-  userId                     String                    @unique
+  // userId                     String                    @unique
   name                       String
-  username                   String                    @unique
-  avatar                     String
-  banner                     String
-  status                     Status                    @default(online)
-  user                       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role                       String
+  phone                      String
+  email                      String
+  address                    String
+  avatar                     String?
+  banner                     String?
+  status                     Status?                   @default(online)
+  // user                       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
   participatingConversations ConversationParticipant[]
   // friendShips                Friendship[]              @relation("user")
   // serverMemberships          ServerMember[]
@@ -82,12 +86,13 @@ model Profile {
   Contributer                Contributer[]
   Company                    Company?                  @relation(fields: [companyId], references: [id])
   companyId                  String?
+  // User                       User[]
+  User                       User[]
 }
 
 model Company {
   id        String    @id @default(cuid())
   name      String    @unique
-  country   String
   address   String
   createdAt DateTime  @default(now())
   phone     String
@@ -98,14 +103,13 @@ model Company {
 
 model Inquiry {
   id          String   @id @default(cuid())
-  companyName String   @unique
-  fname       String
-  lname       String
+  companyName String
+  name        String
   email       String
-  country     String
   address     String
   createdAt   DateTime @default(now())
   phone       String
+  status      String
 }
 
 model VerificationToken {

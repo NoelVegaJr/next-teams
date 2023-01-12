@@ -21,7 +21,7 @@ import MobileSideNavigation from "@/components/Navigation/SideNavigation/MobileS
 import DesktopSideNavigation from "@/components/Navigation/SideNavigation/DesktopSideNavigation";
 import WorkSpace from "@/components/Project/Workspace/Workspace";
 import Servers from "@/components/misc/ServersView/Servers";
-
+import FileSystem from "@/components/FileSystem/FileSystem";
 export const getServerSideProps = async (ctx: NextPageContext) => {
   const session = await getSession(ctx);
   if (!session?.user?.id) {
@@ -34,66 +34,67 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
     };
   }
 
-  const profile = await prisma.profile.findUnique({
-    where: { userId: session.user.id },
-  });
+  // const profile = await prisma.profile.findUnique({
+  //   where: { userId: session.user.id },
+  // });
 
-  if (!profile?.username) {
-    console.log("NO PROFILE");
+  // if (!profile?.username) {
+  //   console.log("NO PROFILE");
 
-    return {
-      redirect: {
-        permanent: false,
-        destination: "/user-creation",
-      },
-      props: {},
-    };
-  }
+  //   return {
+  //     redirect: {
+  //       permanent: false,
+  //       destination: "/user-creation",
+  //     },
+  //     props: {},
+  //   };
+  // }
 
-  await prisma.profile.update({
-    where: { userId: session.user.id },
-    data: { status: "online" },
-  });
-  let conversations = await prisma.conversation.findMany({
-    where: {
-      participants: {
-        some: {
-          profileId: profile.id,
-        },
-      },
-    },
-    select: {
-      id: true,
-      participants: {
-        select: {
-          id: true,
-          profile: true,
-        },
-      },
-      messages: {
-        select: {
-          id: true,
-          date: true,
-          text: true,
-          participant: {
-            select: {
-              id: true,
-              profile: true,
-            },
-          },
-        },
-      },
-    },
-  });
+  // await prisma.profile.update({
+  //   where: { userId: session.user.id },
+  //   data: { status: "online" },
+  // });
+  // let conversations = await prisma.conversation.findMany({
+  //   where: {
+  //     participants: {
+  //       some: {
+  //         profileId: profile.id,
+  //       },
+  //     },
+  //   },
+  //   select: {
+  //     id: true,
+  //     participants: {
+  //       select: {
+  //         id: true,
+  //         profile: true,
+  //       },
+  //     },
+  //     messages: {
+  //       select: {
+  //         id: true,
+  //         date: true,
+  //         text: true,
+  //         participant: {
+  //           select: {
+  //             id: true,
+  //             profile: true,
+  //           },
+  //         },
+  //       },
+  //     },
+  //   },
+  // });
 
-  conversations = JSON.parse(JSON.stringify(conversations));
+  // conversations = JSON.parse(JSON.stringify(conversations));
 
-  return {
-    props: {
-      profile,
-      conversations,
-    },
-  };
+  // return {
+  //   props: {
+  //     profile,
+  //     conversations,
+  //   },
+  // };
+  return { props: { profile: {} } };
 };
 
 export default function HomePage({
@@ -113,14 +114,14 @@ export default function HomePage({
   const viewStore = useHomeViewStore();
   const convoStore = useConversationStore();
 
-  usePusherPresence({
-    userId: profile.id,
-    clientId: "99e512a0e34c2dc7612d",
-    cluster: "us2",
-    endpoint: "http://localhost:3000/api/pusher/auth",
-    name: "quickstart",
-    transport: "ajax",
-  });
+  // usePusherPresence({
+  //   userId: profile.id,
+  //   clientId: "99e512a0e34c2dc7612d",
+  //   cluster: "us2",
+  //   endpoint: "http://localhost:3000/api/pusher/auth",
+  //   name: "quickstart",
+  //   transport: "ajax",
+  // });
 
   useEffect(() => {
     profileStore.set(profile);
@@ -189,15 +190,15 @@ export default function HomePage({
                 <div className="flex flex-shrink-0 bg-gray-700 p-4">
                   <a href="#" className="group block flex-shrink-0">
                     <div className="flex items-center">
-                      <Avatar
+                      {/* <Avatar
                         image={profileStore.profile.avatar}
                         size="sm"
                         username={profileStore.profile.username}
                         status={profileStore.profile.status}
-                      />
+                      /> */}
                       <div className="ml-3">
                         <p className="text-base font-medium text-white">
-                          {profileStore.profile.username}
+                          {/* {profileStore.profile.username} */}
                         </p>
                         <p className="text-sm font-medium text-gray-400 group-hover:text-gray-300">
                           View profile
@@ -222,15 +223,15 @@ export default function HomePage({
           </div>
           <button className="group block w-full flex-shrink-0 bg-gray-700 p-4">
             <div className="flex items-center">
-              <Avatar
+              {/* <Avatar
                 image={profileStore.profile.avatar}
                 size="sm"
                 username={profileStore.profile.username}
                 status={profileStore.profile.status}
-              />
+              /> */}
               <div className="ml-3">
                 <p className="text-sm font-medium text-white">
-                  {profileStore.profile.username}
+                  {/* {profileStore.profile.username} */}
                 </p>
               </div>
             </div>
@@ -261,6 +262,7 @@ export default function HomePage({
               )} */}
           {/* {viewStore.view === "Calendar" && <Calendar />} */}
           {viewStore.view === "Client" && <WorkSpace />}
+          {viewStore.view === "Documents" && <FileSystem />}
         </main>
       </div>
     </div>

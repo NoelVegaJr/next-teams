@@ -1,21 +1,16 @@
-import MyModal from "@/components/Modals/Modal";
-import NewFolderModal from "@/components/Modals/NewFolderModal";
-import ExpandButton from "@/components/Navigation/Buttons/ExpandButton";
-import { FileSystem } from "@/utils/tree";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  ArrowLeftIcon,
-  ArrowPathIcon,
-  ArrowRightIcon,
-  ArrowUpTrayIcon,
-  BackspaceIcon,
-  BackwardIcon,
-  ChevronRightIcon,
-  FolderIcon,
   PlusIcon,
+  ArrowUpTrayIcon,
+  ArrowLeftIcon,
+  ArrowRightIcon,
+  FolderIcon,
+  ArrowPathIcon,
+  ChevronRightIcon,
 } from "@heroicons/react/20/solid";
 import { useFS } from "hooks/fs-hook";
-import { FunctionComponent, useEffect, useState } from "react";
+import * as React from "react";
+import NewFolderModal from "../Modals/NewFolderModal";
+import ExpandButton from "../Navigation/Buttons/ExpandButton";
 
 interface IDirectoryProps {
   item: any;
@@ -47,7 +42,7 @@ const Button = ({
   );
 };
 
-const Directory: FunctionComponent<IDirectoryProps> = ({
+const Directory: React.FunctionComponent<IDirectoryProps> = ({
   item,
   open,
   className,
@@ -92,7 +87,7 @@ const Directory: FunctionComponent<IDirectoryProps> = ({
   );
 };
 
-export const Sandbox = () => {
+const FileSystem: React.FunctionComponent = (props) => {
   const {
     currentDirectory,
     directories,
@@ -101,7 +96,7 @@ export const Sandbox = () => {
     back,
     forward,
   } = useFS();
-  const [newDirModal, setNewDirModal] = useState(false);
+  const [newDirModal, setNewDirModal] = React.useState(false);
   return (
     <>
       <NewFolderModal
@@ -217,4 +212,4 @@ export const Sandbox = () => {
   );
 };
 
-export default Sandbox;
+export default FileSystem;

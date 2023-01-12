@@ -1,6 +1,6 @@
 import * as React from "react";
 import useHomeProfileStore from "@/store/home/profile-store";
-import MyModal from "../MyDialog";
+import MyModal from "./Modal";
 import { trpc } from "@/utils/trpc";
 import type { FormEvent } from "react";
 import { useContext, useState } from "react";

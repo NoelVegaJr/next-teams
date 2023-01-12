@@ -1,6 +1,5 @@
 import type { FormSchemaType } from "@/types/inquiry";
 import { FormSchema } from "@/types/inquiry";
-import { useState } from "react";
 import { trpc } from "@/utils/trpc";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,16 +10,17 @@ import PlacesAutocomplete, {
 
 export default function SignUpForm() {
   const [ref, bound] = useMeasure();
-  const [address, setAddress] = useState("");
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
+    formState,
     formState: { errors },
   } = useForm<FormSchemaType>({ resolver: zodResolver(FormSchema) });
 
   const handleChange = (address: string) => {
-    setAddress(address);
+    setValue("address", address);
   };
 
   const handleSelect = (address: string) => {
@@ -36,7 +36,8 @@ export default function SignUpForm() {
 
   const mutation = trpc.company.newInquiry.useMutation();
   const submitHandler = async (data: FormSchemaType) => {
-    mutation.mutateAsync(data);
+    console.log(data);
+    await mutation.mutateAsync(data);
   };
 
   return (
@@ -77,7 +78,7 @@ export default function SignUpForm() {
                         <input
                           {...register("companyName")}
                           type="text"
-                          id="company"
+                          id="companyName"
                           className="block w-full min-w-0 flex-1 rounded-none rounded-r-md border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         />
                       </div>
@@ -90,44 +91,21 @@ export default function SignUpForm() {
                 <div className="space-y-6 sm:space-y-5">
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-gray-200 ">
                     <label
-                      htmlFor="first-name"
+                      htmlFor="name"
                       className=" flex flex-col text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
                     >
-                      First name
-                      {errors.fname && (
+                      Name
+                      {errors.name && (
                         <p className="text-xs text-red-500">
-                          {errors.fname.message}
+                          {errors.name.message}
                         </p>
                       )}
                     </label>
                     <div className="mt-1 sm:col-span-2 sm:mt-0">
                       <input
                         type="text"
-                        id="firstName"
-                        autoComplete="given-name"
-                        {...register("fname")}
-                        className="block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
-                    <label
-                      htmlFor="last-name"
-                      className=" flex flex-col text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
-                    >
-                      Last name
-                      {errors.lname && (
-                        <p className="text-xs text-red-500">
-                          {errors.lname.message}
-                        </p>
-                      )}
-                    </label>
-                    <div className="mt-1 sm:col-span-2 sm:mt-0">
-                      <input
-                        type="text"
-                        id="lastName"
-                        {...register("lname")}
+                        id="name"
+                        {...register("name")}
                         className="block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm"
                       />
                     </div>
@@ -178,32 +156,7 @@ export default function SignUpForm() {
 
                   <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
                     <label
-                      htmlFor="country"
-                      className=" flex flex-col text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
-                    >
-                      Country
-                      {errors.country && (
-                        <p className="text-xs text-red-500">
-                          {errors.country.message}
-                        </p>
-                      )}
-                    </label>
-                    <div className="mt-1 sm:col-span-2 sm:mt-0">
-                      <select
-                        id="country"
-                        {...register("country")}
-                        className="block w-full max-w-lg rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:max-w-xs sm:text-sm"
-                      >
-                        <option>United States</option>
-                        <option>Canada</option>
-                        <option>Mexico</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="sm:grid sm:grid-cols-3 sm:items-start sm:gap-4 sm:border-t sm:border-gray-200 sm:pt-5">
-                    <label
-                      htmlFor="street-address"
+                      htmlFor="address"
                       className=" flex flex-col text-sm font-medium text-gray-700 sm:mt-px sm:pt-2"
                     >
                       Street address
@@ -215,13 +168,13 @@ export default function SignUpForm() {
                     </label>
                     <div className="mt-1 w-full sm:col-span-2 sm:mt-0">
                       <PlacesAutocomplete
-                        value={address}
+                        value={watch("address")}
                         onChange={handleChange}
                         onSelect={handleSelect}
                         debounce={750}
                         searchOptions={{
                           componentRestrictions: {
-                            country: ["us", "ca", "mx"],
+                            country: ["us", "ca"],
                           },
                         }}
                       >
@@ -283,10 +236,11 @@ export default function SignUpForm() {
                   Cancel
                 </button>
                 <button
+                  disabled={formState.isSubmitting}
                   type="submit"
-                  className="ml-3 inline-flex justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                  className="ml-3 inline-flex cursor-pointer justify-center rounded-md border border-transparent bg-indigo-600 py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 >
-                  Save
+                  Send
                 </button>
               </div>
             </div>

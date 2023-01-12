@@ -9,12 +9,14 @@ export default function ExpandButton({
   title,
   children,
   button,
+  style,
 }: {
   className?: string;
   onClick: () => void;
   title: string;
   children: JSX.Element | JSX.Element[];
   button: JSX.Element;
+  style?: any;
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [ref, bounds] = useMeasure();
@@ -31,6 +33,7 @@ export default function ExpandButton({
           setIsOpen(!isOpen);
         }}
         className={`${className} w-full`}
+        style={style}
       >
         {button}
       </button>
@@ -38,7 +41,7 @@ export default function ExpandButton({
         style={panelHeightAnimatedStyle}
         className="overflow-hidden "
       >
-        <div ref={ref} className=" flex flex-col  text-gray-400 ">
+        <div ref={ref} className=" flex flex-col   ">
           {children}
         </div>
       </animated.div>
