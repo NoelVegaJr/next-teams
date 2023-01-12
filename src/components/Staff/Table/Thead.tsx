@@ -1,15 +1,5 @@
 import type { FunctionComponent } from "react";
-
-const TheadRow = ({ name }: { name: string }) => {
-  return (
-    <th
-      scope="col"
-      className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-    >
-      {name}
-    </th>
-  );
-};
+import TheadCell from "@/components/UI/Table/TheadCell";
 
 const Thead: FunctionComponent = () => {
   return (
@@ -21,10 +11,30 @@ const Thead: FunctionComponent = () => {
         >
           Name
         </th>
-        <TheadRow name="Title" />
-        <TheadRow name="Status" />
-        <TheadRow name="Role" />
-        <TheadRow name="Edit" />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Title"
+        />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Status"
+        />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Role"
+        />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Edit"
+        />
       </tr>
     </thead>
   );
