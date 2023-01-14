@@ -1,76 +1,101 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/utils/trpc";
 import styles from "@/styles/chatfeed.module.css";
-import ChatToolbar from "./ChatToolbar";
-import type { Friend, MessageAndParticipant } from "@/types/types";
-import useHomeProfileStore from "store/home/profile-store";
-import useConversationStore from "store/home/openConversation-store";
 import { usePusherEvent } from "hooks/pusher/pushMessage-hook";
-import Message from "./Message";
+import ChatMessage from "./ChatMessage";
 import ChatInput from "./ChatInput";
+import type {
+  ConversationParticipant,
+  Profile,
+  Message,
+  Conversation,
+} from "@prisma/client";
+import useProfileStore from "@/store/home/profile-store";
 
-interface IChatViewProps {
-  friends: Friend[];
+interface IConversationParticipant extends ConversationParticipant {
+  profile: Profile;
 }
 
-const ChatView: React.FunctionComponent<IChatViewProps> = ({ friends }) => {
-  const convoStore = useConversationStore();
-  const profileStore = useHomeProfileStore();
-  const [messages, setMessages] = useState<MessageAndParticipant[]>([]);
-  const sendMessage = trpc.chat.push.useMutation();
-  const conversationQuery = trpc.chat.getConversationById.useQuery(
-    {
-      id: convoStore.conversationId,
-    },
-    {
-      refetchOnWindowFocus: false,
-      refetchOnReconnect: false,
-      retry: false,
-    }
-  );
+interface IMessage extends Message {
+  participant: IConversationParticipant;
+}
 
-  const incomingMessageLinkedList = usePusherEvent<MessageAndParticipant>({
+interface IConversation extends Conversation {
+  messages: IMessage[];
+  participants: IConversationParticipant[];
+}
+
+interface IChatViewProps {
+  conversation: IConversation;
+}
+
+const ChatView: React.FunctionComponent<IChatViewProps> = ({
+  conversation,
+}) => {
+  // const convoStore = useConversationStore();
+  const profileStore = useProfileStore();
+  const [messages, setMessages] = useState<IMessage[]>(conversation.messages);
+  const sendMessage = trpc.chat.push.useMutation();
+  // const conversationQuery = trpc.chat.getConversationById.useQuery(
+  //   {
+  //     id: profileStore.profile.id,
+  //   },
+  //   {
+  //     refetchOnWindowFocus: false,
+  //     refetchOnReconnect: false,
+  //     retry: false,
+  //   }
+  // );
+
+  const incomingMessageLinkedList = usePusherEvent<IMessage>({
     clientId: "99e512a0e34c2dc7612d",
     cluster: "us2",
     transport: "ajax",
     endpoint: "http://localhost:3000/api/pusher/auth",
     profileId: "",
-    subscription: convoStore.conversationId,
+    subscription: conversation.id,
     event: "message",
   });
 
   useEffect(() => {
     const nextMessage = incomingMessageLinkedList.pop();
     if (nextMessage) {
-      setMessages((prev) => [...prev, nextMessage.data]);
+      setMessages((prev) => [...prev, nextMessage]);
     }
   }, [incomingMessageLinkedList, messages]);
 
   const sendMessageHandler = (text: string) => {
-    if (!text || !convoStore.conversationId) return;
-    const participantId = conversationQuery.data?.participants.find(
+    console.log("Send message handler: ", text);
+    if (!text || !conversation.id) return;
+    console.log("Text exists");
+
+    const participantId = conversation.participants.find(
       (participant) => participant.profile.id === profileStore.profile.id
     )?.id;
+    console.log("profile Id: ", profileStore.profile.id);
+
+    console.log("participant Id: ", participantId);
 
     if (!participantId) return;
 
+    console.log("sending msg");
     sendMessage.mutate({
-      conversationId: convoStore.conversationId,
+      conversationId: conversation.id,
       participantId,
       text,
     });
   };
-  if (!conversationQuery.data) {
-    return <div />;
-  }
+  // if (!conversationQuery.data) {
+  //   return <div />;
+  // }
   return (
-    <div className="flex h-screen w-full flex-col bg-slate-50">
-      <ChatToolbar
+    <div className="flex w-full flex-1 flex-col  bg-slate-50">
+      {/* <ChatToolbar
         participants={conversationQuery.data.participants}
         friends={friends}
-      />
+      /> */}
       <div
-        className={`chatfeed grow items-end overflow-y-scroll ${styles.chatfeed}`}
+        className={`chatfeed grow items-end overflow-y-auto ${styles.chatfeed}`}
       >
         <div className="w-full cursor-pointer">
           {messages.map((message, index: number) => {
@@ -79,12 +104,10 @@ const ChatView: React.FunctionComponent<IChatViewProps> = ({ friends }) => {
 
             return (
               <div key={id} className={`flex gap-4 `}>
-                <div className="w-full">
-                  <Message
-                    message={message}
-                    newParticpant={prevParticipantId === currParticpant.id}
-                  />
-                </div>
+                <ChatMessage
+                  message={message}
+                  newParticpant={prevParticipantId === currParticpant.id}
+                />
               </div>
             );
           })}

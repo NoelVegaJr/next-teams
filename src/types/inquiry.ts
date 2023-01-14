@@ -16,6 +16,7 @@ export const NewUserSchema = z.object({
   phone: z.string().min(10).max(11),
   email: z.string().email(),
   address: z.string().min(1).max(150),
+  companyId: z.string(),
 });
 
 export type NewUserSchemaType = z.infer<typeof NewUserSchema>;

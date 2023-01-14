@@ -6,16 +6,16 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUser } from "@fortawesome/free-solid-svg-icons";
 
 interface IAvatarProps {
-  image: string;
+  image: string | null;
   status: Status;
-  username: string;
+  name: string;
   size: "xs" | "sm" | "md" | "lg" | "xl";
 }
 
 const Avatar: React.FunctionComponent<IAvatarProps> = ({
   image,
   status,
-  username,
+  name,
   size,
 }) => {
   let avatarSize;
@@ -47,10 +47,10 @@ const Avatar: React.FunctionComponent<IAvatarProps> = ({
           !image && "border-2"
         }`}
       >
-        {image !== "default" ? (
+        {image ? (
           <Image
             src={image}
-            alt={`${username} avatar`}
+            alt={`${name} avatar`}
             style={{ objectFit: "cover" }}
             fill
             sizes="(max-width: 768px) 100vw,

@@ -120,7 +120,7 @@ export const userRouter = router({
       try {
         const members = await prisma.profile.findMany({
           where: {
-            companyId: "1",
+            companyId,
           },
         });
         return { ok: true, members };

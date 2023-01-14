@@ -1,5 +1,7 @@
+import { trpc } from "@/utils/trpc";
 import { faCheck, faPlus, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { Task, TaskList } from "@prisma/client";
 import { useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import DraggableTasks from "./DraggableTasks";
@@ -9,33 +11,30 @@ interface ITask {
   title: string;
 }
 
-interface ITaskList {
-  id: string;
-  title: string;
-  tasks: ITask[];
+interface ITasklist extends TaskList {
+  tasks: Task[];
 }
 
 const DraggableTaskList = ({
   taskList,
   index,
-  set,
 }: {
-  taskList: ITaskList;
+  taskList: ITasklist;
   index: number;
-  set: (taskList: ITaskList) => void;
 }) => {
-  const [title, setTitle] = useState(taskList.title);
+  const utils = trpc.useContext();
+  const [title, setTitle] = useState(taskList.name);
   const [editTitle, setEditTitle] = useState(false);
   const [editNewTask, setEditNewTask] = useState(false);
   const [newTask, setNewTask] = useState("");
-
+  const newTaskMutation = trpc.company.newTask.useMutation({
+    onSuccess: () => {
+      utils.company.getProjectById.invalidate();
+    },
+  });
   const submitNewTaskHandler = () => {
     if (!newTask) return;
-    const tasks: ITask[] = [
-      ...taskList.tasks,
-      { id: Math.random().toString(), title: newTask },
-    ];
-    set({ ...taskList, tasks });
+    newTaskMutation.mutate({ name: newTask, taskListId: taskList.id });
     setNewTask("");
     setEditNewTask(false);
   };
@@ -58,10 +57,6 @@ const DraggableTaskList = ({
                   type="text"
                   className="w-full rounded px-1 outline-none"
                   autoFocus
-                  onBlur={() => {
-                    set({ ...taskList, title });
-                    setEditTitle(false);
-                  }}
                 />
               ) : (
                 <p
@@ -69,7 +64,7 @@ const DraggableTaskList = ({
                   onBlur={() => setEditTitle(false)}
                   className=" text-white"
                 >
-                  {taskList.title}
+                  {taskList.name}
                 </p>
               )}
             </div>
@@ -95,13 +90,8 @@ const DraggableTaskList = ({
                         </button>
                       ) : (
                         <div className="">
-                          {/* <input /> */}
-
                           <input
                             autoFocus
-                            // onBlur={() => {
-                            //   setEditNewTask(false);
-                            // }}
                             value={newTask}
                             onChange={(e) => setNewTask(e.target.value)}
                             type="text"

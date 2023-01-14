@@ -1,5 +1,5 @@
 import * as React from "react";
-import MyModal from "../Modals/Modal";
+import MyModal from "./Modal";
 import PlacesAutocomplete, {
   geocodeByAddress,
 } from "react-places-autocomplete";
@@ -8,16 +8,20 @@ import { NewUserSchema, NewUserSchemaType } from "@/types/inquiry";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import useMeasure from "react-use-measure";
+import { toast } from "react-hot-toast";
 
 interface IAddUserModalProps {
   isOpen: boolean;
   close: () => void;
+  companyId: string;
 }
 
-const AddUserModal: React.FunctionComponent<IAddUserModalProps> = ({
+const NewUserModal: React.FunctionComponent<IAddUserModalProps> = ({
   isOpen,
   close,
+  companyId,
 }) => {
+  const utils = trpc.useContext();
   const [ref, bound] = useMeasure();
 
   const {
@@ -28,10 +32,16 @@ const AddUserModal: React.FunctionComponent<IAddUserModalProps> = ({
     formState: { errors },
   } = useForm<NewUserSchemaType>({ resolver: zodResolver(NewUserSchema) });
 
-  const mutation = trpc.company.newUser.useMutation();
-  const submitHandler = async (data: NewUserSchemaType) => {
+  const mutation = trpc.company.newUser.useMutation({
+    onSuccess: (data) => {
+      utils.admin.listAllCompanies.invalidate();
+      toast.success(`Created new user ${data.data?.name}`);
+    },
+  });
+  const submitHandler = (data: NewUserSchemaType) => {
     console.log(data);
-    await mutation.mutateAsync(data);
+    mutation.mutateAsync(data);
+    close();
   };
 
   const handleChange = (address: string) => {
@@ -55,6 +65,7 @@ const AddUserModal: React.FunctionComponent<IAddUserModalProps> = ({
         <div className=" md:gap-6">
           <div className="mt-5 md:col-span-2 md:mt-0">
             <form onSubmit={handleSubmit(submitHandler)} className="w-full">
+              <input value={companyId} {...register("companyId")} hidden />
               <div className=" ">
                 <div className="bg-white px-4 py-5 sm:p-6">
                   <div className=" flex flex-col gap-6">
@@ -197,4 +208,4 @@ const AddUserModal: React.FunctionComponent<IAddUserModalProps> = ({
   );
 };
 
-export default AddUserModal;
+export default NewUserModal;

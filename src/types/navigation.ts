@@ -4,4 +4,5 @@ export type NavLinkType =
   | "Projects"
   | "Documents"
   | "Calendar"
-  | "Client";
+  | "Projects"
+  | "Project";

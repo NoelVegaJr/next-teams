@@ -11,7 +11,7 @@ const WorkspaceTabs = ({
         onClick={() => onChange("chat")}
         className={`${
           current === "chat" && "bg-slate-600"
-        } w-1/3 py-2 font-semibold hover:bg-slate-600/70`}
+        } w-1/4 py-2 font-semibold hover:bg-slate-600/70`}
       >
         Chat
       </li>
@@ -19,7 +19,7 @@ const WorkspaceTabs = ({
         onClick={() => onChange("task board")}
         className={`${
           current === "task board" && "bg-slate-600"
-        } w-1/3 py-2 font-semibold hover:bg-slate-600/70`}
+        } w-1/4 py-2 font-semibold hover:bg-slate-600/70`}
       >
         Tasks Board
       </li>
@@ -27,9 +27,17 @@ const WorkspaceTabs = ({
         onClick={() => onChange("white board")}
         className={`${
           current === "task board" && "bg-slate-600"
-        } w-1/3 py-2 font-semibold hover:bg-slate-600/70`}
+        } w-1/4 py-2 font-semibold hover:bg-slate-600/70`}
       >
         White Board
+      </li>
+      <li
+        onClick={() => onChange("servers")}
+        className={`${
+          current === "servers" && "bg-slate-600"
+        } w-1/4 py-2 font-semibold hover:bg-slate-600/70`}
+      >
+        Servers
       </li>
     </ul>
   );

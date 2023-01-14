@@ -1,15 +1,24 @@
-import type { MessageAndParticipant } from "@/types/types";
+import { Message, Profile, ConversationParticipant } from "@prisma/client";
 import type { FunctionComponent } from "react";
 import { useState } from "react";
 import FollowMessage from "./FollowMessage";
 import MessageOptions from "./MessageOptions";
 import ResponseMessage from "./ResponseMessage";
-interface IMessageProps {
-  newParticpant: boolean;
-  message: MessageAndParticipant;
+
+interface IConversationParticipant extends ConversationParticipant {
+  profile: Profile;
 }
 
-const Message: FunctionComponent<IMessageProps> = ({
+interface IMessage extends Message {
+  participant: IConversationParticipant;
+}
+
+interface IMessageProps {
+  newParticpant: boolean;
+  message: IMessage;
+}
+
+const ChatMessage: FunctionComponent<IMessageProps> = ({
   newParticpant,
   message,
 }) => {
@@ -22,7 +31,7 @@ const Message: FunctionComponent<IMessageProps> = ({
       onMouseLeave={() => {
         setHovered(false);
       }}
-      className={`$ relative flex w-full gap-4 py-1.5 hover:bg-neutral-200/50`}
+      className={`$ relative flex w-full gap-4 py-0.5 hover:bg-neutral-200/50`}
     >
       {newParticpant ? (
         <FollowMessage
@@ -38,4 +47,4 @@ const Message: FunctionComponent<IMessageProps> = ({
   );
 };
 
-export default Message;
+export default ChatMessage;

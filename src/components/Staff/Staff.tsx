@@ -1,26 +1,19 @@
-import { trpc } from "@/utils/trpc";
 import type { Profile } from "@prisma/client";
 import { useEffect, useState } from "react";
-
-import useMeasure from "react-use-measure";
-import useHomeProfileStore from "store/home/profile-store";
+import { trpc } from "@/utils/trpc";
 import StaffMemberRow from "./Table/StaffMemberRow";
 import Thead from "./Table/Thead";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { NewUserSchemaType, NewUserSchema } from "@/types/inquiry";
-import AddUserModal from "./AddUserModal";
+import AddUserModal from "../Modals/NewUserModal";
+import useCompanyStore from "@/store/company-store";
 
-interface IStaffProps {
-  initialStaff: Profile[];
-}
-
-const Staff: React.FunctionComponent<IStaffProps> = ({ initialStaff }) => {
-  const [staffMembers, setStaffMembers] = useState<Profile[]>(initialStaff);
+const Staff: React.FunctionComponent = () => {
+  const companyStore = useCompanyStore();
+  const [staffMembers, setStaffMembers] = useState<Profile[]>(
+    companyStore.Staff
+  );
   const [openAddUserModal, setOpenUserModal] = useState(false);
-
   const staffQuery = trpc.user.getStaffByCompanyId.useQuery({
-    companyId: "1",
+    companyId: companyStore.id,
   });
 
   useEffect(() => {
@@ -33,6 +26,7 @@ const Staff: React.FunctionComponent<IStaffProps> = ({ initialStaff }) => {
       <AddUserModal
         close={() => setOpenUserModal(false)}
         isOpen={openAddUserModal}
+        companyId={companyStore.id}
       />
       <div className="mx-auto mt-8  w-full max-w-6xl">
         <div className="sm:flex sm:items-center">

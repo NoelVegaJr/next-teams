@@ -1,56 +1,128 @@
 import type { DropResult } from "react-beautiful-dnd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DragDropContext, Droppable } from "react-beautiful-dnd";
 import { reorder2DLists } from "../../utils/reorderdnd";
 import { taskLists } from "./tasks";
 import DraggableTaskList from "./DraggableTaskList";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCheck, faPlus, faX } from "@fortawesome/free-solid-svg-icons";
-interface ITask {
-  id: string;
-  title: string;
+import type { Task, Taskboard, TaskList } from "@prisma/client";
+import { trpc } from "@/utils/trpc";
+
+interface ITasklist extends TaskList {
+  tasks: Task[];
 }
 
-interface ITaskList {
-  id: string;
-  title: string;
-  tasks: ITask[];
+interface ITaskboard extends Taskboard {
+  TaskLists: ITasklist[];
 }
 
-const TaskBoard: React.FunctionComponent = () => {
-  const [lists, setLists] = useState(taskLists);
+interface ITaskboardProps {
+  taskboard: ITaskboard;
+}
+
+const TaskBoard: React.FunctionComponent<ITaskboardProps> = ({ taskboard }) => {
+  const utils = trpc.useContext();
+  const [lists, setLists] = useState(taskboard.TaskLists);
   const [editNewTaskList, setEditNewTaskList] = useState(false);
   const [newTaskList, setNewTaskList] = useState("");
+  const newTaskListMutation = trpc.company.newTaskList.useMutation({
+    onSuccess: () => {
+      utils.company.getProjectById.invalidate();
+    },
+  });
+
+  useEffect(() => {
+    setLists(taskboard.TaskLists);
+  }, [taskboard.TaskLists]);
+
+  const reorderTaskListsMutation = trpc.company.reorderTaskLists.useMutation({
+    onSuccess: () => {
+      utils.company.getProjectById.invalidate();
+    },
+  });
+
+  const reorderTasksSameListMutation =
+    trpc.company.reorderTasksSameList.useMutation({
+      onSuccess: () => {
+        utils.company.getProjectById.invalidate();
+      },
+    });
+
+  const reorderTasksDiffListMutation =
+    trpc.company.reorderTasksDiffList.useMutation({
+      onSuccess: () => {
+        utils.company.getProjectById.invalidate();
+      },
+    });
 
   const submitNewTaskListHandler = () => {
     if (!newTaskList) return;
-    setLists((prev) => [
-      ...prev,
-      { id: Math.random().toString(), title: newTaskList, tasks: [] },
-    ]);
+    newTaskListMutation.mutate({
+      name: newTaskList,
+      taskBoardId: taskboard.id,
+    });
     setEditNewTaskList(false);
     setNewTaskList("");
   };
 
-  const updateList = (list: ITaskList) => {
-    const updatedLists = lists.map((l) => {
-      if (l.id === list.id) {
-        return list;
-      }
-      return l;
-    });
-
-    setLists(() => updatedLists);
-  };
-
-  const updateListsHandler = (lists: ITaskList[]) => {
-    console.log(lists);
-    setLists(() => lists);
-  };
-
   const dragEndHandler = (result: DropResult) => {
     console.log(result);
-    reorder2DLists(result, lists, updateListsHandler);
+    const { source, destination } = result;
+
+    if (
+      (source.droppableId === destination?.droppableId &&
+        source.index === destination.index) ||
+      !destination
+    ) {
+      return;
+    }
+
+    if (destination.droppableId === "board") {
+      const clonedLists = [...lists];
+      console.log("reorder list");
+      const sourceItem = clonedLists.splice(source.index, 1);
+      clonedLists.splice(destination.index, 0, sourceItem[0]);
+
+      setLists(clonedLists);
+      const listIds = clonedLists.map((l) => l.id);
+      reorderTaskListsMutation.mutate({ listIds });
+      console.log(clonedLists);
+    } else {
+      const sourceList = lists.filter(
+        (list) => list.id === source.droppableId
+      )[0];
+
+      const destList = lists.filter(
+        (list) => list.id === destination.droppableId
+      )[0];
+
+      const sourceItem = sourceList.tasks.splice(source.index, 1)[0];
+      destList.tasks.splice(destination.index, 0, sourceItem);
+
+      if (source.droppableId === destination.droppableId) {
+        reorderTasksSameListMutation.mutate({
+          taskIds: destList.tasks.map((t) => t.id),
+        });
+      } else {
+        reorderTasksDiffListMutation.mutate({
+          destListId: destList.id,
+          taskId: sourceItem.id,
+          taskIds: destList.tasks.map((t) => t.id),
+        });
+      }
+
+      const newList = lists.map((list) => {
+        if (list.id === source.droppableId) {
+          return sourceList;
+        } else if (list.id === destination.droppableId) {
+          return destList;
+        }
+        return list;
+      });
+
+      setLists(newList);
+    }
   };
   return (
     <div className="h-full w-full overflow-x-scroll ">
@@ -69,7 +141,6 @@ const TaskBoard: React.FunctionComponent = () => {
                       key={taskList.id}
                       taskList={taskList}
                       index={index}
-                      set={updateList}
                     />
                   );
                 })}

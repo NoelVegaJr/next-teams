@@ -1,10 +1,28 @@
-import type { IConversation, IMessage } from "@/types/types";
 import { trpc } from "@/utils/trpc";
 import { useEffect, useRef, useState } from "react";
 import client from "pusher-js";
 import styles from "@/styles/chatfeed.module.css";
 import ResponseMessage from "./ResponseMessage";
 import FollowMessage from "./FollowMessage";
+import type {
+  Conversation,
+  ConversationParticipant,
+  Message,
+  Profile,
+} from "@prisma/client";
+
+interface IConversationParticipant extends ConversationParticipant {
+  profile: Profile;
+}
+
+interface IMessage extends Message {
+  participant: IConversationParticipant;
+}
+
+interface IConversation extends Conversation {
+  participants: IConversationParticipant[];
+  messages: IMessage[];
+}
 
 interface IMessageFeedProps {
   conversation: IConversation;
@@ -29,7 +47,7 @@ const MessageFeed: React.FunctionComponent<IMessageFeedProps> = ({
   } | null>(null);
 
   const participantId = conversation?.participants.find(
-    (participant) => participant.profile.id === profileId
+    (participant) => participant.profileId === profileId
   )?.id as string;
 
   const messageHoverHandler = (ctx: { id: string; index: number } | null) => {
@@ -88,17 +106,17 @@ const MessageFeed: React.FunctionComponent<IMessageFeedProps> = ({
                   {messages[index - 1]?.participant.id !==
                   message.participant.id ? (
                     <ResponseMessage
-                      index={index}
-                      isHovered={hoveredMsg?.id === message.id}
+                      // index={index}
+                      // isHovered={hoveredMsg?.id === message.id}
                       message={message}
-                      setHovered={messageHoverHandler}
-                      usernameStyles="text-black"
+                      // setHovered={messageHoverHandler}
+                      // usernameStyles="text-black"
                       itemStyles="hover:bg-slate-200/50"
                       timeStyles="text-slate-600 text-sm"
                     />
                   ) : (
                     <FollowMessage
-                      index={index}
+                      // index={index}
                       isHovered={hoveredMsg?.id === message.id}
                       message={message}
                       setHovered={messageHoverHandler}

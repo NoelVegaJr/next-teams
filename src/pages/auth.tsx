@@ -1,7 +1,8 @@
 import { getSession, signIn, useSession } from "next-auth/react";
-import Image from "next/image";
 import type { NextPageContext } from "next";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { trpc } from "@/utils/trpc";
+import { toast } from "react-hot-toast";
 
 export const getServerSideProps = async (context: NextPageContext) => {
   const user = await getSession(context);
@@ -22,6 +23,22 @@ export const getServerSideProps = async (context: NextPageContext) => {
 
 const Auth: React.FunctionComponent = () => {
   const { data: user } = useSession();
+  const [email, setEmail] = useState("");
+  const exists = trpc.auth.profileExists.useMutation();
+
+  const signInHandler = async () => {
+    if (!email) {
+      return toast.error("Please enter an email");
+    }
+    const profileExists = await exists.mutateAsync({ email });
+
+    if (profileExists.exists) {
+      await signIn("email", { email, redirect: false });
+      toast.success("Login link sent to your email");
+    } else {
+      toast.error("Login failed");
+    }
+  };
   useEffect(() => {
     console.log(user);
   }, [user]);
@@ -38,60 +55,23 @@ const Auth: React.FunctionComponent = () => {
             </p>
           </div>
           <div className="flex flex-col  ">
-            <button
-              onClick={() => signIn("google")}
-              className="flex w-full items-center justify-center gap-4 rounded-3xl border-2 bg-white px-4 py-3 font-semibold text-slate-400"
-            >
-              <div className="relative flex h-6 w-6 items-center">
-                <Image
-                  fill
-                  style={{ objectFit: "cover" }}
-                  src={"/google.png"}
-                  alt="google logo"
-                />
-              </div>
-              Sign in with Google
-            </button>
-            <div className=" my-4 flex items-center gap-4">
-              <div className=" h-0.5 flex-1 bg-slate-300" />
-              <p className="text-slate-400">Or, login with your email</p>
-              <div className=" h-0.5 flex-1 bg-slate-300" />
-            </div>
             <div className="flex flex-col gap-4">
               <div>
-                <label htmlFor="email" className="font-semibold text-slate-500">
-                  Email
-                </label>
                 <input
                   id="email"
                   type="text"
                   placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && signInHandler()}
                   className="px- w-full rounded-3xl border-2 px-4 py-2  outline-none"
                 />
               </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="font-semibold text-slate-500"
-                >
-                  Password
-                </label>
-                <input
-                  id="password"
-                  type="text"
-                  placeholder="Password"
-                  className="w-full rounded-3xl border-2 px-4 py-2  outline-none"
-                />
-              </div>
-              <div className="flex justify-between text-sm">
-                <div className="flex gap-2">
-                  <input type="checkbox" />
-                  <p>Remember me</p>
-                </div>
-                <p>Forgot Password ?</p>
-              </div>
-              <button className="flex w-full items-center justify-center gap-4 rounded-3xl  bg-blue-600 py-2 text-xl font-semibold text-white">
-                {/* <FontAwesomeIcon icon={faLock} /> */}
+
+              <button
+                onClick={signInHandler}
+                className="flex w-full items-center justify-center gap-4 rounded-3xl  bg-blue-600 py-2 text-xl font-semibold text-white"
+              >
                 <p>Login</p>
               </button>
             </div>

@@ -1,18 +1,15 @@
+import type { TaskList, Task as ITask } from "@prisma/client";
 import * as React from "react";
+import { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
+import Modal from "../Modals/Modal";
+import Task from "./Task";
 
-interface ITask {
-  id: string;
-  title: string;
-}
-
-interface ITaskList {
-  id: string;
-  title: string;
+interface ITasklist extends TaskList {
   tasks: ITask[];
 }
 
-const DraggableTasks = ({ taskList }: { taskList: ITaskList }) => {
+const DraggableTasks = ({ taskList }: { taskList: ITasklist }) => {
   return (
     <>
       {taskList.tasks.map((task, index) => {
@@ -27,13 +24,13 @@ const DraggableTasks = ({ taskList }: { taskList: ITaskList }) => {
                 <>
                   <li
                     ref={provided.innerRef}
-                    className={`rounded border border-slate-900  bg-white px-2 py-2 ${
+                    className={`  ${
                       snapshot.isDragging && " box-shadow-2xl shadow-2xl"
                     }`}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
                   >
-                    {task.title}
+                    <Task task={task} />
                   </li>
                 </>
               );

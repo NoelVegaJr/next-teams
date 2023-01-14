@@ -23,7 +23,7 @@ const FollowMessage: React.FunctionComponent<IFollowMessageProps> = ({
         >
           {AMPM(date)}
         </p>
-        <p className={`p-1 `}>{text}</p>
+        <p className={` `}>{text}</p>
       </div>
     </>
   );

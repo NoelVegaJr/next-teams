@@ -8,19 +8,25 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
 import { useState } from "react";
-import ChannelContributorsModal from "./ChannelContributorsModal";
+import ChannelContributorsModal from "../../Modals/ContributorsModal";
 import Modal from "@/components/UI/Modal";
-import type { IChannel } from "@/types/types";
-import useServerStore from "store/server-store";
-import useChannelStore from "store/channel-store";
-import { trpc } from "@/utils/trpc";
-import serverStore from "store/server-store";
-import useProfileStore from "store/profile-store";
+import useProjectStore from "@/store/home/project-store";
+import type { Contributer, Profile } from "@prisma/client";
 
-const ChannelBanner = () => {
-  const channelMembership = useChannelStore().active.get(
-    useProfileStore().activeWorkspace.id
-  );
+interface IContributer extends Contributer {
+  profile: Profile;
+}
+
+interface IProjectBannerProps {
+  contributors: IContributer[];
+  name: string;
+}
+
+const ProjectBanner: React.FunctionComponent<IProjectBannerProps> = ({
+  contributors,
+  name,
+}) => {
+  const projectStore = useProjectStore();
   const [viewContributors, setViewContributors] = useState(false);
   const [viewPins, setViewPins] = useState(false);
   const [viewInfo, setViewInfo] = useState(false);
@@ -30,7 +36,10 @@ const ChannelBanner = () => {
   return (
     <>
       {viewContributors && (
-        <ChannelContributorsModal close={() => setViewContributors(false)} />
+        <ChannelContributorsModal
+          contributers={contributors}
+          close={() => setViewContributors(false)}
+        />
       )}
 
       {viewPins && (
@@ -48,7 +57,7 @@ const ChannelBanner = () => {
       <div className=" border-b-2 p-4">
         <div className="flex items-center gap-2">
           <FontAwesomeIcon icon={faHashtag} className="text-xs" />
-          <p className="font-bold">{channelMembership?.channel?.name}</p>
+          <p className="font-bold">{name}</p>
           <FontAwesomeIcon icon={faStar} className="text-xs text-green-700" />
         </div>
         <div className="flex items-center justify-between">
@@ -83,4 +92,4 @@ const ChannelBanner = () => {
   );
 };
 
-export default ChannelBanner;
+export default ProjectBanner;

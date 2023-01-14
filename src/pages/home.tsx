@@ -1,4 +1,5 @@
 import type { NextPageContext } from "next";
+import { prisma } from "@/server/db/client";
 import { getSession } from "next-auth/react";
 import { Fragment, useEffect, useState } from "react";
 import type {
@@ -6,25 +7,24 @@ import type {
   Friend,
   ServerPreview,
 } from "@/types/types";
-import { prisma } from "@/server/db/client";
-import type { Profile } from "@prisma/client";
+import type { Company, Profile } from "@prisma/client";
 import useHomeProfileStore from "store/home/profile-store";
 import useHomeViewStore from "store/home/view-store";
-import { usePusherPresence } from "hooks/pusher/presense-hook";
 import useConversationStore from "store/home/openConversation-store";
 import { Dialog, Transition } from "@headlessui/react";
 
 import { Bars3Icon, XMarkIcon } from "@heroicons/react/24/outline";
-import Avatar from "@/components/UI/Avatar";
 import Staff from "../components/Staff/Staff";
 import MobileSideNavigation from "@/components/Navigation/SideNavigation/MobileSideNavigation";
 import DesktopSideNavigation from "@/components/Navigation/SideNavigation/DesktopSideNavigation";
-import WorkSpace from "@/components/Project/Workspace/Workspace";
 import Servers from "@/components/misc/ServersView/Servers";
 import FileSystem from "@/components/FileSystem/FileSystem";
+import useCompanyStore from "@/store/company-store";
+import Projects from "@/components/Project/Projects";
+import Project from "@/components/Project/Project";
 export const getServerSideProps = async (ctx: NextPageContext) => {
   const session = await getSession(ctx);
-  if (!session?.user?.id) {
+  if (!session?.user?.email) {
     return {
       redirect: {
         permanent: false,
@@ -34,82 +34,62 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
     };
   }
 
-  // const profile = await prisma.profile.findUnique({
-  //   where: { userId: session.user.id },
-  // });
+  const profileData = await prisma.profile.findUnique({
+    where: { email: session.user.email },
+    include: {
+      company: {
+        select: {
+          id: true,
+          name: true,
+          address: true,
+          phone: true,
+          image: true,
+          banner: true,
+          staff: true,
+          projects: {
+            include: {
+              taskboard: true,
+              conversation: {
+                include: {
+                  participants: true,
+                  messages: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
 
-  // if (!profile?.username) {
-  //   console.log("NO PROFILE");
+  if (!profileData) {
+    return {
+      redirect: {
+        permanent: false,
+        destination: "/auth",
+      },
+      props: {},
+    };
+  }
+  let { company, ...profile } = profileData;
 
-  //   return {
-  //     redirect: {
-  //       permanent: false,
-  //       destination: "/user-creation",
-  //     },
-  //     props: {},
-  //   };
-  // }
+  profile = JSON.parse(JSON.stringify(profileData));
+  company = JSON.parse(JSON.stringify(company));
 
-  // await prisma.profile.update({
-  //   where: { userId: session.user.id },
-  //   data: { status: "online" },
-  // });
-  // let conversations = await prisma.conversation.findMany({
-  //   where: {
-  //     participants: {
-  //       some: {
-  //         profileId: profile.id,
-  //       },
-  //     },
-  //   },
-  //   select: {
-  //     id: true,
-  //     participants: {
-  //       select: {
-  //         id: true,
-  //         profile: true,
-  //       },
-  //     },
-  //     messages: {
-  //       select: {
-  //         id: true,
-  //         date: true,
-  //         text: true,
-  //         participant: {
-  //           select: {
-  //             id: true,
-  //             profile: true,
-  //           },
-  //         },
-  //       },
-  //     },
-  //   },
-  // });
-
-  // conversations = JSON.parse(JSON.stringify(conversations));
-
-  // return {
-  //   props: {
-  //     profile,
-  //     conversations,
-  //   },
-  // };
-  return { props: { profile: {} } };
+  return { props: { profile, company } };
 };
 
 export default function HomePage({
   profile,
-  conversations,
-  servers,
+  company,
   friends,
 }: {
-  profile: Profile;
-  conversations: ConversationWithParticipants[];
-  servers: ServerPreview[];
+  profile: any;
   friends: Friend[];
+  company: Omit<Company, "createdAt">;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-
+  const companyStore = useCompanyStore();
   const profileStore = useHomeProfileStore();
   const viewStore = useHomeViewStore();
   const convoStore = useConversationStore();
@@ -125,10 +105,11 @@ export default function HomePage({
 
   useEffect(() => {
     profileStore.set(profile);
+    companyStore.set(company);
   }, []);
 
   return (
-    <div className="h-screen bg-gray-50">
+    <div className="flex h-screen bg-gray-50">
       <Transition.Root show={sidebarOpen} as={Fragment}>
         <Dialog
           as="div"
@@ -183,7 +164,9 @@ export default function HomePage({
                 </Transition.Child>
                 <div className="h-0 flex-1 overflow-y-auto pt-5 pb-4">
                   <div className="flex flex-shrink-0 items-center px-4">
-                    <p className="text-lg font-semibold text-white">Phyper</p>
+                    <p className="text-lg font-semibold text-white">
+                      {profile.company.name}
+                    </p>
                   </div>
                   <MobileSideNavigation />
                 </div>
@@ -217,7 +200,9 @@ export default function HomePage({
         <div className="flex min-h-0 flex-1 flex-col bg-gray-800">
           <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
             <div className="flex flex-shrink-0 items-center px-4">
-              <p className="text-lg font-semibold text-white">Phyper</p>
+              <p className="text-lg font-semibold text-white">
+                {profile.company.name}
+              </p>
             </div>
             <DesktopSideNavigation />
           </div>
@@ -238,7 +223,8 @@ export default function HomePage({
           </button>
         </div>
       </div>
-      <div className="flex h-screen flex-1 flex-col md:pl-64">
+
+      <div className="flex h-full flex-1  flex-col  md:pl-64">
         <div className="sticky top-0 z-10 bg-gray-50 pl-1 pt-1 sm:pl-3 sm:pt-3 md:hidden">
           <button
             type="button"
@@ -250,18 +236,19 @@ export default function HomePage({
           </button>
         </div>
 
-        <main className="h-full flex-1 ">
+        <main className="flex h-full flex-1 flex-col ">
           {viewStore.view === "Servers" && (
             <>
               <Servers />
             </>
           )}
-          {viewStore.view === "Staff" && <Staff initialStaff={friends} />}
+          {viewStore.view === "Staff" && <Staff />}
           {/* {viewStore.view === "Chat" && convoStore.conversationId && (
                 <ChatView friends={friends} />
               )} */}
           {/* {viewStore.view === "Calendar" && <Calendar />} */}
-          {viewStore.view === "Client" && <WorkSpace />}
+          {viewStore.view === "Projects" && <Projects />}
+          {viewStore.view === "Project" && <Project />}
           {viewStore.view === "Documents" && <FileSystem />}
         </main>
       </div>

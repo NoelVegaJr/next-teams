@@ -14,12 +14,10 @@ interface profile {
 const useProfileStore = create<profile>()((set) => ({
   profile: {
     id: "",
-    userId: "",
     name: "",
     banner: "",
     avatar: "",
     status: "online",
-    username: "",
     workspaceMemberships: [],
     channelMemberships: [],
   },

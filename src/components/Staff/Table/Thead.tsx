@@ -15,7 +15,19 @@ const Thead: FunctionComponent = () => {
           className={
             "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
           }
-          name="Title"
+          name="Role"
+        />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Email"
+        />
+        <TheadCell
+          className={
+            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
+          }
+          name="Phone"
         />
         <TheadCell
           className={
@@ -28,12 +40,6 @@ const Thead: FunctionComponent = () => {
             "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
           }
           name="Role"
-        />
-        <TheadCell
-          className={
-            "px-3 py-3.5 text-left text-sm font-semibold text-gray-900"
-          }
-          name="Edit"
         />
       </tr>
     </thead>

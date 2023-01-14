@@ -1,12 +1,23 @@
-import { useContext } from "react";
+import type { FunctionComponent } from "react";
 import Modal from "@/components/UI/Modal";
-import Image from "next/image";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch } from "@fortawesome/free-solid-svg-icons";
-import { ServerContext } from "@/context/server-context";
+import type { Contributer, Profile } from "@prisma/client";
+import Avatar from "@/components/UI/Avatar";
 
-const ChannelContributorsModal = ({ close }: { close: () => void }) => {
-  const workspaceCtx = useContext(ServerContext);
+interface IContributer extends Contributer {
+  profile: Profile;
+}
+
+interface IContributorsModalProps {
+  contributers: IContributer[];
+  close: () => void;
+}
+
+const ContributorsModal: FunctionComponent<IContributorsModalProps> = ({
+  close,
+  contributers,
+}) => {
   return (
     <Modal close={close}>
       <div
@@ -23,21 +34,18 @@ const ChannelContributorsModal = ({ close }: { close: () => void }) => {
           <FontAwesomeIcon icon={faSearch} />
         </div>
         <ul className="flex cursor-pointer flex-col py-4">
-          {workspaceCtx?.openChannel?.members.map((member: any) => {
-            const { user } = member;
+          {contributers.map((c) => {
+            const { profile } = c;
             return (
-              <li key={user.id} className="py-4 hover:bg-slate-100">
+              <li key={c.id} className="py-4 hover:bg-slate-100">
                 <div className="flex items-center gap-4 pl-4">
-                  <div className="relative h-14 w-14 overflow-hidden rounded-full ">
-                    <Image
-                      src={user.image}
-                      alt="profile picture"
-                      fill
-                      className=""
-                      style={{ objectFit: "cover" }}
-                    />
-                  </div>
-                  <p className="font-semibold">{user.name}</p>
+                  <Avatar
+                    image={profile.avatar}
+                    name={profile.name}
+                    size="sm"
+                    status={profile.status}
+                  />
+                  <p className="font-semibold">{profile.name}</p>
                 </div>
               </li>
             );
@@ -48,4 +56,4 @@ const ChannelContributorsModal = ({ close }: { close: () => void }) => {
   );
 };
 
-export default ChannelContributorsModal;
+export default ContributorsModal;

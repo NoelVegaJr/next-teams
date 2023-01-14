@@ -1,20 +1,33 @@
+import { TaskList, Task, Taskboard } from "@prisma/client";
 import type { DropResult } from "react-beautiful-dnd";
 
-interface ITask {
-  id: string;
-  title: string;
+// interface ITask {
+//   id: string;
+//   title: string;
+// }
+
+// interface ITaskList {
+//   id: string;
+//   title: string;
+//   tasks: ITask[];
+// }
+
+interface ITasklist extends TaskList {
+  tasks: Task[];
 }
 
-interface ITaskList {
-  id: string;
-  title: string;
-  tasks: ITask[];
+interface ITaskboard extends Taskboard {
+  TaskLists: ITasklist[];
+}
+
+interface ITaskboardProps {
+  taskboard: ITaskboard;
 }
 
 export const reorder2DLists = (
   result: DropResult,
-  lists: ITaskList[],
-  setLists: (lists: ITaskList[]) => void
+  lists: ITasklist[],
+  setLists: (lists: ITasklist[]) => void
 ) => {
   const { source, destination } = result;
 

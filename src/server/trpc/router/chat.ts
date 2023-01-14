@@ -33,7 +33,7 @@ export const chatRouter = router({
                 profile: {
                   select: {
                     id: true,
-                    username: true,
+                    name: true,
                     avatar: true,
                     status: true,
                   },
@@ -223,20 +223,10 @@ export const chatRouter = router({
           where: {
             conversationId: id,
           },
-          select: {
-            conversationId: true,
-            id: true,
-            date: true,
-            text: true,
-            participant: {
-              select: {
-                id: true,
-                profile: true,
-              },
-            },
+          include: {
+            participant: { include: { profile: true } },
           },
         });
-
         return messages;
       } catch (error) {
         console.log(error);

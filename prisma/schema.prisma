@@ -56,7 +56,7 @@ model User {
   accounts      Account[]
   sessions      Session[]
   profile       Profile?  @relation(fields: [profileId], references: [id])
-  profileId     String?
+  profileId     String?   @unique
 }
 
 enum Status {
@@ -68,26 +68,19 @@ enum Status {
 
 model Profile {
   id                         String                    @id @default(cuid())
-  // userId                     String                    @unique
+  companyId                  String
   name                       String
   role                       String
   phone                      String
-  email                      String
+  email                      String                    @unique
   address                    String
+  status                     Status                    @default(offline)
   avatar                     String?
   banner                     String?
-  status                     Status?                   @default(online)
-  // user                       User                      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  participatingConversations ConversationParticipant[]
-  // friendShips                Friendship[]              @relation("user")
-  // serverMemberships          ServerMember[]
-  // workspaceMemberships       WorkspaceMember[]
-  // channelMemberships         WorkspaceChannelMember[]
+  User                       User?
+  ParticipatingConversations ConversationParticipant[]
   Contributer                Contributer[]
-  Company                    Company?                  @relation(fields: [companyId], references: [id])
-  companyId                  String?
-  // User                       User[]
-  User                       User[]
+  company                    Company                   @relation(fields: [companyId], references: [id])
 }
 
 model Company {
@@ -98,7 +91,8 @@ model Company {
   phone     String
   image     String?
   banner    String?
-  Staff     Profile[]
+  staff     Profile[]
+  projects  Project[]
 }
 
 model Inquiry {
@@ -120,60 +114,17 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// model Friendship {
-//   id            String           @id @default(cuid())
-//   profileId     String
-//   friendId      String
-//   friendProfile Profile          @relation("user", fields: [profileId], references: [id])
-//   status        FriendShipStatus
-// }
-
-// enum FriendShipStatus {
-//   recieved
-//   pending
-//   blocked
-//   friends
-// }
-
-// model Server {
-//   id                   String                 @id @default(cuid())
-//   name                 String
-//   createdAt            DateTime               @default(now())
-//   image                String
-//   members              ServerMember[]
-//   workspaces           Workspace[]
-//   ServerInvitationLink ServerInvitationLink[]
-// }
-
-// model ServerMember {
-//   id              String                 @id @default(cuid())
-//   profileId       String
-//   serverId        String
-//   server          Server                 @relation(fields: [serverId], references: [id])
-//   profile         Profile                @relation(fields: [profileId], references: [id])
-//   sentInvitations ServerInvitationLink[]
-
-// @@unique([profileId, serverId], name: "serverMemberIdentifier")
-// }
-
-// model ServerInvitationLink {
-//   id             String       @id @default(cuid())
-//   serverId       String
-//   createdAt      DateTime     @default(now())
-//   server         Server       @relation(fields: [serverId], references: [id])
-//   serverMemberId String
-//   profile        ServerMember @relation(fields: [serverMemberId], references: [id])
-// }
-
 model Project {
   id           String        @id @default(cuid())
   name         String
   createdAt    DateTime      @default(now())
-  image        String
-  members      Contributer[]
-  Conversation Conversation?
-  Taskboard    Taskboard?
-  taskboardId  String        @unique
+  image        String?
+  contributors Contributer[]
+  conversation Conversation?
+  taskboard    Taskboard?
+  taskboardId  String?       @unique
+  companyId    String
+  company      Company       @relation(fields: [companyId], references: [id])
 }
 
 model Contributer {
@@ -184,28 +135,6 @@ model Contributer {
   profile      Profile        @relation(fields: [profileId], references: [id], onDelete: Cascade)
   TaskAssignee TaskAssignee[]
 }
-
-// model WorkspaceChannel {
-//   id             String                   @id @default(cuid())
-//   workspaceId    String
-//   name           String
-//   createdAt      DateTime                 @default(now())
-//   members        WorkspaceChannelMember[]
-//   workspace      Workspace                @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-//   conversationId String
-//   conversation   Conversation             @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-// }
-
-// model WorkspaceChannelMember {
-//   id            String           @id @default(cuid())
-//   channelId     String
-//   joinAt        DateTime         @default(now())
-//   profileId     String
-//   profile       Profile          @relation(fields: [profileId], references: [id], onDelete: Cascade)
-//   channel       WorkspaceChannel @relation(fields: [channelId], references: [id], onDelete: Cascade)
-//   exited        Boolean          @default(false)
-//   assignedTasks TaskAssignee[]
-// }
 
 model Conversation {
   id           String                    @id @default(cuid())
@@ -250,6 +179,7 @@ model TaskList {
   tasks       Task[]
   taskBoardId String
   taskboard   Taskboard @relation(fields: [taskBoardId], references: [id])
+  index       Int       @default(10)
 }
 
 model Task {
@@ -257,12 +187,13 @@ model Task {
   taskListId        String
   createAt          DateTime            @default(now())
   name              String
-  description       String              @db.Text
+  description       String?             @db.Text
+  index             Int                 @default(9999)
   taskCheckListItem TaskCheckListItem[]
   taskComments      TaskComments[]
   taskList          TaskList            @relation(fields: [taskListId], references: [id])
   assignees         TaskAssignee[]
-  isComplete        Boolean
+  isComplete        Boolean             @default(false)
 }
 
 model TaskAssignee {

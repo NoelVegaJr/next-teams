@@ -18,10 +18,13 @@ const ChatInput: FunctionComponent<IChatInputProps> = ({
       className={`${className}`}
       placeholder="Message"
       onKeyDown={(e) => {
-        const value = msgRef?.current?.value;
-        if (e.key === "Enter" && value) {
-          submit(value);
-          msgRef.current.value = "";
+        if (e.key === "Enter") {
+          const value = msgRef?.current?.value;
+          if (value) {
+            console.log("VALUE: ", value);
+            submit(value);
+            msgRef.current.value = "";
+          }
         }
       }}
     />

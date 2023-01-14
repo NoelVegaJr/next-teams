@@ -1,5 +1,3 @@
-import * as React from "react";
-
 interface ITheadProps {
   name: string;
   className?: string;

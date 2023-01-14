@@ -2,21 +2,29 @@ import type { Profile } from "@prisma/client";
 import create from "zustand";
 
 interface profile {
-  profile: Profile;
+  profile: any;
   set: (profile: Profile) => void;
 }
 
-const useHomeProfileStore = create<profile>()((set) => ({
+const useProfileStore = create<profile>()((set) => ({
   profile: {
     id: "",
-    userId: "",
+    companyId: "",
     name: "",
+    role: "",
+    phone: "",
+    email: "",
+    address: "",
     banner: "",
     avatar: "",
     status: "online",
-    username: "",
-    // workspaceMemberships: [],
-    // channelMemberships: [],
+    Company: {
+      name: "",
+      address: "",
+      phone: "",
+      image: "",
+      banner: "",
+    },
   },
   set: (profile) => {
     set(() => ({
@@ -25,4 +33,4 @@ const useHomeProfileStore = create<profile>()((set) => ({
   },
 }));
 
-export default useHomeProfileStore;
+export default useProfileStore;

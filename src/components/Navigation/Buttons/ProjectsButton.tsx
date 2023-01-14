@@ -1,9 +1,12 @@
+import useCompanyStore from "@/store/company-store";
 import useHomeViewStore from "@/store/home/view-store";
 import { ChartBarIcon } from "@heroicons/react/20/solid";
+import ProjectsList from "../SideNavigation/Projects";
 import ExpandButton from "./ExpandButton";
 
 const ProjectsButton: React.FunctionComponent = () => {
   const view = useHomeViewStore();
+
   return (
     <ExpandButton
       title="Projects"
@@ -35,17 +38,7 @@ const ProjectsButton: React.FunctionComponent = () => {
         </div>
       }
     >
-      {["Chase", "SpaceX", "Apple", "Uber"].map((project) => {
-        return (
-          <button
-            onClick={() => view.set("Client")}
-            key={project}
-            className="w-full rounded py-1 pl-6 text-left text-gray-400 hover:bg-indigo-700 hover:text-gray-200"
-          >
-            {project}
-          </button>
-        );
-      })}
+      <ProjectsList />
     </ExpandButton>
   );
 };

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `TaskList` ADD COLUMN `index` INTEGER NOT NULL DEFAULT 10;

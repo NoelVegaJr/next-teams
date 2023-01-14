@@ -1,7 +1,7 @@
 import { type AppType } from "next/app";
 import { type Session } from "next-auth";
 import { SessionProvider } from "next-auth/react";
-
+import { Toaster } from "react-hot-toast";
 import { trpc } from "../utils/trpc";
 
 import "../styles/globals.css";
@@ -14,16 +14,15 @@ const MyApp: AppType<{ session: Session | null }> = ({
 }) => {
   return (
     <SessionProvider session={session}>
-      <ToastContextProvider>
-        <>
-          <Script
-            async
-            defer
-            src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyA8ml6U7DlQtEgqfsxzD7GLegi1ieALNqY&libraries=places`}
-          />
-          <Component {...pageProps} />
-        </>
-      </ToastContextProvider>
+      <>
+        <Script
+          async
+          defer
+          src={`https://maps.googleapis.com/maps/api/js?key=AIzaSyA8ml6U7DlQtEgqfsxzD7GLegi1ieALNqY&libraries=places`}
+        />
+        <Component {...pageProps} />
+        <Toaster />
+      </>
     </SessionProvider>
   );
 };
