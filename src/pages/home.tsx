@@ -22,6 +22,44 @@ import FileSystem from "@/components/FileSystem/FileSystem";
 import useCompanyStore from "@/store/company-store";
 import Projects from "@/components/Project/Projects";
 import Project from "@/components/Project/Project";
+import useStaffStore from "@/store/staff-store";
+import { string } from "zod";
+import useProjectsStore from "@/store/home/project-store";
+
+interface ITask {
+  id: string;
+  name: string;
+}
+
+interface ITaskList {
+  id: string;
+  name: string;
+  tasks: ITask[];
+}
+
+interface ITaskboard {
+  id: string;
+  name: string;
+  TaskLists: ITaskList[];
+}
+
+interface IProject {
+  id: string;
+  name: string;
+  contributors: { profileId: string }[];
+  taskboard: ITaskboard;
+  conversation: {
+    id: string;
+    participants: { profileId: string; id: string }[];
+    messages: {
+      id: string;
+      date: Date;
+      participant: { profileId: string; id: string };
+      text: string;
+    }[];
+  };
+}
+
 export const getServerSideProps = async (ctx: NextPageContext) => {
   const session = await getSession(ctx);
   if (!session?.user?.email) {
@@ -47,12 +85,52 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
           banner: true,
           staff: true,
           projects: {
-            include: {
-              taskboard: true,
+            select: {
+              id: true,
+              name: true,
+              contributors: {
+                select: { profileId: true },
+              },
+              taskboard: {
+                select: {
+                  id: true,
+                  name: true,
+                  TaskLists: {
+                    select: {
+                      id: true,
+                      name: true,
+                      tasks: {
+                        select: {
+                          id: true,
+                          name: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
               conversation: {
-                include: {
-                  participants: true,
-                  messages: true,
+                select: {
+                  id: true,
+                  participants: {
+                    select: {
+                      id: true,
+                      profileId: true,
+                    },
+                  },
+                  messages: {
+                    select: {
+                      id: true,
+                      date: true,
+                      participant: {
+                        select: {
+                          id: true,
+                          profileId: true,
+                        },
+                      },
+                      text: true,
+                    },
+                  },
                 },
               },
             },
@@ -79,20 +157,25 @@ export const getServerSideProps = async (ctx: NextPageContext) => {
   return { props: { profile, company } };
 };
 
+interface CompanyAndStaff extends Omit<Company, "createdAt"> {
+  staff: Profile[];
+  projects: IProject[];
+}
+
 export default function HomePage({
   profile,
   company,
-  friends,
 }: {
   profile: any;
   friends: Friend[];
-  company: Omit<Company, "createdAt">;
+  company: CompanyAndStaff;
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const companyStore = useCompanyStore();
   const profileStore = useHomeProfileStore();
+  const staffStore = useStaffStore();
+  const projectsStore = useProjectsStore();
   const viewStore = useHomeViewStore();
-  const convoStore = useConversationStore();
 
   // usePusherPresence({
   //   userId: profile.id,
@@ -106,8 +189,17 @@ export default function HomePage({
   useEffect(() => {
     profileStore.set(profile);
     companyStore.set(company);
-  }, []);
+    company.staff.map((member) => {
+      staffStore.set(member);
+    });
 
+    company.projects.map((project) => {
+      projectsStore.set(project);
+    });
+    console.log(company);
+  }, []);
+  console.log("STAFF STORE:", staffStore);
+  console.log("PROJECTS STORE:", projectsStore);
   return (
     <div className="flex h-screen bg-gray-50">
       <Transition.Root show={sidebarOpen} as={Fragment}>

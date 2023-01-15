@@ -1,6 +1,5 @@
 import useCompanyStore from "@/store/company-store";
 import useProjectStore from "@/store/home/project-store";
-import useProject from "@/store/home/project-store";
 import useHomeViewStore from "@/store/home/view-store";
 import { trpc } from "@/utils/trpc";
 import { useState } from "react";
@@ -14,7 +13,7 @@ const ProjectsList: React.FunctionComponent = () => {
   const clickHandler = (projectName: string, id: string) => {
     view.set("Project");
     setSelectedProject(projectName);
-    project.set(id);
+    project.setCurrentProjectId(id);
   };
   return (
     <>

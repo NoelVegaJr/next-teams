@@ -1,6 +1,6 @@
 import * as React from "react";
 import useHomeProfileStore from "@/store/home/profile-store";
-import MyModal from "./Modal";
+import Modal from "./Modal";
 import { trpc } from "@/utils/trpc";
 import type { FormEvent } from "react";
 import { useContext, useState } from "react";
@@ -66,7 +66,7 @@ const NewServerModal: React.FunctionComponent<INewServerModalProps> = ({
   };
 
   return (
-    <MyModal isOpen={isOpen} close={close} title="New Server">
+    <Modal isOpen={isOpen} close={close} title="New Server">
       {loading ? (
         <>
           <div className="flex flex-col items-center gap-6">
@@ -139,7 +139,7 @@ const NewServerModal: React.FunctionComponent<INewServerModalProps> = ({
           </div>
         </form>
       )}
-    </MyModal>
+    </Modal>
   );
 };
 

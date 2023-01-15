@@ -1,15 +1,18 @@
-import type { TaskList, Task as ITask } from "@prisma/client";
-import * as React from "react";
-import { useState } from "react";
 import { Draggable } from "react-beautiful-dnd";
-import Modal from "../Modals/Modal";
 import Task from "./Task";
 
-interface ITasklist extends TaskList {
+interface ITask {
+  id: string;
+  name: string;
+}
+
+interface ITaskList {
+  id: string;
+  name: string;
   tasks: ITask[];
 }
 
-const DraggableTasks = ({ taskList }: { taskList: ITasklist }) => {
+const DraggableTasks = ({ taskList }: { taskList: ITaskList }) => {
   return (
     <>
       {taskList.tasks.map((task, index) => {

@@ -1,4 +1,4 @@
-import MyModal from "@/components/Modals/Modal";
+import MyModal from "@/components/Modals/Modall";
 import { ICreateCompanySchema } from "@/types/mutationSchemas";
 import { trpc } from "@/utils/trpc";
 import { useState } from "react";

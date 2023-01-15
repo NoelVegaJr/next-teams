@@ -5,12 +5,11 @@ import FollowMessage from "./FollowMessage";
 import MessageOptions from "./MessageOptions";
 import ResponseMessage from "./ResponseMessage";
 
-interface IConversationParticipant extends ConversationParticipant {
-  profile: Profile;
-}
-
-interface IMessage extends Message {
-  participant: IConversationParticipant;
+interface IMessage {
+  id: string;
+  date: Date;
+  participant: { profileId: string; id: string };
+  text: string;
 }
 
 interface IMessageProps {

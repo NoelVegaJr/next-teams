@@ -8,8 +8,7 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import * as React from "react";
 import { useState } from "react";
-import ChannelContributorsModal from "../../Modals/ContributorsModal";
-import Modal from "@/components/UI/Modal";
+import ContributorsModal from "../../Modals/ContributorsModal";
 import useProjectStore from "@/store/home/project-store";
 import type { Contributer, Profile } from "@prisma/client";
 
@@ -18,7 +17,7 @@ interface IContributer extends Contributer {
 }
 
 interface IProjectBannerProps {
-  contributors: IContributer[];
+  contributors: { profileId: string }[];
   name: string;
 }
 
@@ -36,13 +35,14 @@ const ProjectBanner: React.FunctionComponent<IProjectBannerProps> = ({
   return (
     <>
       {viewContributors && (
-        <ChannelContributorsModal
-          contributers={contributors}
+        <ContributorsModal
+          isOpen={viewContributors}
+          contributors={contributors}
           close={() => setViewContributors(false)}
         />
       )}
 
-      {viewPins && (
+      {/* {viewPins && (
         <Modal close={() => setViewPins(false)}>
           <div className="text-7xl text-white">Pins</div>
         </Modal>
@@ -52,7 +52,7 @@ const ProjectBanner: React.FunctionComponent<IProjectBannerProps> = ({
         <Modal close={() => setViewInfo(false)}>
           <div className="text-7xl text-white">General Info</div>
         </Modal>
-      )}
+      )} */}
 
       <div className=" border-b-2 p-4">
         <div className="flex items-center gap-2">

@@ -1,14 +1,14 @@
 import Avatar from "@/components/UI/Avatar";
+import useStaffStore from "@/store/staff-store";
 import AMPM from "@/utils/convertAMPM";
-import type { ConversationParticipant, Message, Profile } from "@prisma/client";
 
-interface IConversationParticipant extends ConversationParticipant {
-  profile: Profile;
+interface IMessage {
+  id: string;
+  date: Date;
+  participant: { profileId: string; id: string };
+  text: string;
 }
 
-interface IMessage extends Message {
-  participant: IConversationParticipant;
-}
 interface IResponseMessageProps {
   message: IMessage;
   timeStyles: string;
@@ -18,8 +18,9 @@ const ResponseMessage: React.FunctionComponent<IResponseMessageProps> = ({
   message,
   timeStyles,
 }) => {
-  const { text, participant, date } = message;
-  const { profile } = participant;
+  const staffStore = useStaffStore();
+  const { text, date } = message;
+  const profile = staffStore.staff[message.participant.profileId];
   return (
     <>
       <div className="flex w-20 justify-end ">

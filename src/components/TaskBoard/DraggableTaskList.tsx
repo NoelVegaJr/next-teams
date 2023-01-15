@@ -1,25 +1,26 @@
 import { trpc } from "@/utils/trpc";
 import { faCheck, faPlus, faX } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import type { Task, TaskList } from "@prisma/client";
 import { useState } from "react";
 import { Draggable, Droppable } from "react-beautiful-dnd";
 import DraggableTasks from "./DraggableTasks";
 
 interface ITask {
   id: string;
-  title: string;
+  name: string;
 }
 
-interface ITasklist extends TaskList {
-  tasks: Task[];
+interface ITaskList {
+  id: string;
+  name: string;
+  tasks: ITask[];
 }
 
 const DraggableTaskList = ({
   taskList,
   index,
 }: {
-  taskList: ITasklist;
+  taskList: ITaskList;
   index: number;
 }) => {
   const utils = trpc.useContext();

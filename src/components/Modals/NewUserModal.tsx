@@ -1,10 +1,10 @@
-import * as React from "react";
-import MyModal from "./Modal";
+import Modal from "./Modal";
 import PlacesAutocomplete, {
   geocodeByAddress,
 } from "react-places-autocomplete";
 import { trpc } from "@/utils/trpc";
-import { NewUserSchema, NewUserSchemaType } from "@/types/inquiry";
+import type { NewUserSchemaType } from "@/types/inquiry";
+import { NewUserSchema } from "@/types/inquiry";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import useMeasure from "react-use-measure";
@@ -60,7 +60,7 @@ const NewUserModal: React.FunctionComponent<IAddUserModalProps> = ({
   };
 
   return (
-    <MyModal title="Add User" close={close} isOpen={isOpen}>
+    <Modal title="Add User" close={close} isOpen={isOpen}>
       <div className="mt-10 sm:mt-0">
         <div className=" md:gap-6">
           <div className="mt-5 md:col-span-2 md:mt-0">
@@ -204,7 +204,7 @@ const NewUserModal: React.FunctionComponent<IAddUserModalProps> = ({
           </div>
         </div>
       </div>
-    </MyModal>
+    </Modal>
   );
 };
 

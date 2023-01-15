@@ -1,8 +1,15 @@
 import type { MessageAndParticipant } from "@/types/types";
 import AMPM from "@/utils/convertAMPM";
 
+interface IMessage {
+  id: string;
+  date: Date;
+  participant: { profileId: string; id: string };
+  text: string;
+}
+
 interface IFollowMessageProps {
-  message: MessageAndParticipant;
+  message: IMessage;
   timeStyles: string;
   isHovered: boolean;
 }

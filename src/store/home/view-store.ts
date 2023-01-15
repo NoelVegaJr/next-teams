@@ -7,7 +7,7 @@ interface homeView {
 }
 
 const useHomeViewStore = create<homeView>()((set) => ({
-  view: "Servers",
+  view: "Projects",
   set: (view: NavLinkType) => {
     set(() => ({
       view,

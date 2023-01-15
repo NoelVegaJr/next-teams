@@ -1,6 +1,5 @@
-import * as React from "react";
 import { useState } from "react";
-import MyModal from "./Modal";
+import Modal from "./Modal";
 
 interface INewFolderModalProps {
   isOpen: boolean;
@@ -15,13 +14,19 @@ const NewFolderModal: React.FunctionComponent<INewFolderModalProps> = ({
 }) => {
   const [name, setName] = useState("");
   return (
-    <MyModal title="New Folder" isOpen={isOpen} close={close}>
-      <div className="flex flex-col gap-2">
+    <Modal
+      title="New Folder"
+      isOpen={isOpen}
+      close={close}
+      styles={{ modal: "rounded-lg" }}
+    >
+      <div className=" flex flex-col gap-2 ">
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
           type="text"
-          className="w-full rounded"
+          autoFocus
+          className="border- w-full rounded border-2 p-1 outline-blue-600"
           placeholder="Name"
         />
         <button
@@ -33,7 +38,7 @@ const NewFolderModal: React.FunctionComponent<INewFolderModalProps> = ({
           Create
         </button>
       </div>
-    </MyModal>
+    </Modal>
   );
 };
 

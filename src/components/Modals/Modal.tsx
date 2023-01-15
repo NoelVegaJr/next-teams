@@ -1,66 +1,69 @@
-import { Dialog, Transition } from "@headlessui/react";
-import type { FunctionComponent } from "react";
-import { Fragment } from "react";
+import { FunctionComponent } from "react";
+import { animated, useTransition } from "react-spring";
+import Portal from "../UI/Portal";
 
-export interface IModalProps {
+type ModalStyles = {
+  modal?: string;
+  title?: string;
+  backdrop?: string;
+  body?: string;
+};
+
+type IModalProps = {
+  children: JSX.Element | JSX.Element[];
   isOpen: boolean;
   close: () => void;
-  title: string;
-  children: JSX.Element[] | JSX.Element;
-  size?: string;
-}
+  title?: string;
+  size?: "xs" | "sm" | "md" | "lg" | "full";
+  styles?: ModalStyles;
+};
 
 export const Modal: FunctionComponent<IModalProps> = ({
   isOpen,
-  close,
-  title,
   children,
-  size = "max-w-md",
+  close,
+  size = "md",
+  title,
+  styles,
 }) => {
-  return (
-    <>
-      <Transition appear show={isOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-10 " onClose={close}>
-          <Transition.Child
-            as={Fragment}
-            enter="ease-out duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in duration-200"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-black bg-opacity-25" />
-          </Transition.Child>
+  const transitions = useTransition(isOpen, {
+    from: { opacity: 0 },
+    enter: { opacity: 1 },
+    leave: { opacity: 0 },
+  });
 
-          <div className="fixed inset-0 ">
-            <div className="flex min-h-full items-center justify-center border border-red-600 p-4 text-center">
-              <Transition.Child
-                as={Fragment}
-                enter="ease-out duration-300"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="ease-in duration-200"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+  const modalSize = {
+    xs: "max-w-xs",
+    sm: "max-w-sm",
+    md: "max-w-md",
+    lg: "max-w-lg",
+    full: "max-w-full",
+  };
+  return (
+    <Portal>
+      {transitions(
+        (style, open) =>
+          open && (
+            <animated.div
+              style={style}
+              onClick={close}
+              className={`fixed flex h-screen w-full items-center justify-center bg-black/20 ${styles?.backdrop}`}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className={`w-full rounded-lg shadow-xl ${modalSize[size]} ${styles?.modal} bg-white`}
               >
-                <Dialog.Panel
-                  className={`w-full ${size} transform  rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all`}
-                >
-                  <Dialog.Title
-                    as="h3"
-                    className="text-lg font-medium leading-6 text-gray-900"
-                  >
+                {title && (
+                  <div className={`px-4 pt-4 text-xl ${styles?.title}`}>
                     {title}
-                  </Dialog.Title>
-                  <div className="mt-2">{children}</div>
-                </Dialog.Panel>
-              </Transition.Child>
-            </div>
-          </div>
-        </Dialog>
-      </Transition>
-    </>
+                  </div>
+                )}
+                <div className={`p-4 ${styles?.body}`}>{children}</div>
+              </div>
+            </animated.div>
+          )
+      )}
+    </Portal>
   );
 };
 

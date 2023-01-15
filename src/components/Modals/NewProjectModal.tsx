@@ -22,6 +22,7 @@ const NewProjectModal: React.FunctionComponent<INewProjectModalProps> = ({
   const newProjectMutation = trpc.company.newProject.useMutation({
     onSuccess: () => {
       toast.success(`Project ${name} created`);
+      utils.company.getProjectById.invalidate();
     },
     onError: () => {
       toast.error(`Failed to create project ${name}`);
@@ -42,7 +43,8 @@ const NewProjectModal: React.FunctionComponent<INewProjectModalProps> = ({
         value={name}
         onChange={(e) => setName(e.target.value)}
         type="text"
-        className="mb-2 w-full rounded"
+        autoFocus
+        className="mb-2 w-full rounded border-2 p-1 outline-blue-500"
       />
       <button
         onClick={createProjectHandler}

@@ -7,14 +7,17 @@ import {
   TagIcon,
   UserIcon,
 } from "@heroicons/react/24/outline";
-import { Task } from "@prisma/client";
-import * as React from "react";
 import { useState } from "react";
 import Modal from "../Modals/Modal";
 import Avatar from "../UI/Avatar";
 
+interface ITask {
+  id: string;
+  name: string;
+}
+
 interface ITaskProps {
-  task: Task;
+  task: ITask;
 }
 
 const Task: React.FunctionComponent<ITaskProps> = ({ task }) => {
@@ -27,7 +30,7 @@ const Task: React.FunctionComponent<ITaskProps> = ({ task }) => {
         isOpen={openModal}
         close={() => setOpenModal(false)}
         title={task.name}
-        size="max-w-5xl"
+        size="lg"
       >
         <div className="flex h-full gap-6">
           <div className="flex w-full flex-col gap-10">
@@ -39,7 +42,7 @@ const Task: React.FunctionComponent<ITaskProps> = ({ task }) => {
               <div className="pl-12">
                 <textarea
                   autoFocus={false}
-                  className="w-full rounded border-none bg-gray-200 outline-none"
+                  className="w-full rounded border-none bg-gray-200 p-2 outline-none"
                   placeholder="Add a more detailed description..."
                 />
                 <div className="flex items-center gap-2">
@@ -61,13 +64,13 @@ const Task: React.FunctionComponent<ITaskProps> = ({ task }) => {
               />
               <input
                 type="text"
-                className="w-full grow-0 rounded border border-gray-200 outline-none"
+                className="w-full grow-0 rounded border border-gray-200 p-2 outline-none"
                 placeholder="Write a comment..."
               />
             </div>
           </div>
           <div className="flex h-full w-60 flex-col gap-2">
-            <p className="text-sm">Add to card</p>
+            <p className="text-sm">Add to task</p>
             <button className="transition-color flex w-full items-center gap-2 rounded bg-gray-100 p-1 duration-200 hover:bg-gray-200">
               <UserIcon className="h-4 w-4" />
               <p className="text-xs">Members</p>
